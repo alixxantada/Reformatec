@@ -26,11 +26,13 @@ public class ProvinciaDAOImpl implements ProvinciaDAO {
 
 
 
-
 	@Override
 	public List<Provincia> findByCriteria (Connection c, Integer idProvincia)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -59,8 +61,11 @@ public class ProvinciaDAOImpl implements ProvinciaDAO {
 			if(idProvincia!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, idProvincia);
 			}
-
-			logger.trace(preparedStatement);
+			
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -69,10 +74,14 @@ public class ProvinciaDAOImpl implements ProvinciaDAO {
 				lista.add(provincia);
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(provincia, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(provincia, sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {

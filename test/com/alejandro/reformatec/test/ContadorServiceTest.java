@@ -110,9 +110,9 @@ public class ContadorServiceTest {
 		ContadorServiceTest test = new ContadorServiceTest();
 
 		test.testCuentaClientes();
-//		test.testCuentaProveedores();
-//		test.testCuentaProyectosActivos();
-//		test.testCuentaProyectosFinalizados();
-//		test.testCuentaTrabajosRealizados();
+		test.testCuentaProveedores();
+		test.testCuentaProyectosActivos();
+		test.testCuentaProyectosFinalizados();
+		test.testCuentaTrabajosRealizados();
 	}
 }

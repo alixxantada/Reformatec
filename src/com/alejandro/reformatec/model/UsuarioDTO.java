@@ -48,7 +48,6 @@ public class UsuarioDTO extends AbstractValueObject {
 	private String direccionWeb;
 	// importante, debe ser Boolean y no boolean para poder darle null de valor a los de este tipo
 	private Boolean servicio24;
-	private Boolean expertoNegocio;
 	private Long numeroVisualizaciones;
 	private Boolean proveedorVerificado;
 
@@ -354,16 +353,6 @@ public class UsuarioDTO extends AbstractValueObject {
 
 	public void setServicio24(Boolean servicio24) {
 		this.servicio24 = servicio24;
-	}
-
-
-	public Boolean getExpertoNegocio() {
-		return expertoNegocio;
-	}
-
-
-	public void setExpertoNegocio(Boolean expertoNegocio) {
-		this.expertoNegocio = expertoNegocio;
 	}
 
 

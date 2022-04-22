@@ -90,11 +90,10 @@ public class ProyectoServiceTest {
 		proyecto.setPresupuestoMax(presupuestoMax);
 		proyecto.setIdPoblacion(idPoblacion);
 		proyecto.setIdUsuarioCreadorProyecto(idUsuarioCreadorProyecto);
-		proyecto.setIdsEspecializaciones(idsEspecializaciones);
 		
 		try {
 			
-			proyectoservice.create(proyecto);
+			proyectoservice.create(proyecto, idsEspecializaciones);
 
 			int startIndex = 1;
 			int pageSize = 1;
@@ -124,9 +123,15 @@ public class ProyectoServiceTest {
 		// TODO faltaria añadir las especializaciones por aqui y abajo en el set
 		Long idProyecto = 3L;
 		String titulo = "trabajo de pruebas";
-		String descripcion = "descripcion del trabajo realizado que le vamos ir poniendo aqui";
+		String descripcion = "descripcion del proyecto que le vamos ir poniendo aqui";
 		int presupuestoMax = 12000;
 		int idPoblacion = 1;
+		
+		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
+		
+		idsEspecializaciones.add(1);
+		idsEspecializaciones.add(2);
+		idsEspecializaciones.add(3);
 		/////////////////////////////////////
 		try {
 
@@ -137,12 +142,13 @@ public class ProyectoServiceTest {
 			results = proyectoservice.findByCriteria(pc, startIndex, pageSize);
 			logger.info("Proyecto Antes de actualizar: "+results.getData());
 
+			proyecto.setIdProyecto(idProyecto);
 			proyecto.setTitulo(titulo);
 			proyecto.setDescripcion(descripcion);
 			proyecto.setPresupuestoMax(presupuestoMax);
 			proyecto.setIdPoblacion(idPoblacion);
 
-			proyectoservice.update(proyecto);
+			proyectoservice.update(proyecto, idsEspecializaciones);
 
 			results = proyectoservice.findByCriteria(pc, startIndex, pageSize);
 			logger.info("Proyecto Actualizado!: "+results.getData());
@@ -196,9 +202,9 @@ public class ProyectoServiceTest {
 
 		ProyectoServiceTest test = new ProyectoServiceTest();
 
-		test.testFindByCriteria();
-		//		test.testCreate();
-		//		test.testUpdate();
+		//test.testFindByCriteria();
+			test.testCreate();
+			//	test.testUpdate();
 		//		test.testUpdateStatus();
 	}
 }

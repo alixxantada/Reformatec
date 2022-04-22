@@ -30,7 +30,10 @@ public class PoblacionDAOImpl implements PoblacionDAO {
 	@Override
 	public List<PoblacionDTO> findByCriteria(Connection c, PoblacionCriteria pc)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 		
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -42,7 +45,6 @@ public class PoblacionDAOImpl implements PoblacionDAO {
 			StringBuilder queryString = new StringBuilder("SELECT po.ID_POBLACION, po.NOMBRE, pr.ID_PROVINCIA, pr.NOMBRE"
 					+ " FROM POBLACION po "
 					+ " INNER JOIN PROVINCIA pr ON po.ID_PROVINCIA = pr.ID_PROVINCIA");
-			
 			
 			boolean first = true;
 
@@ -58,7 +60,6 @@ public class PoblacionDAOImpl implements PoblacionDAO {
 			
 			queryString.append(" ORDER BY po.ID_POBLACION ASC ");
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);		
 			
 			int i = 1;
@@ -71,7 +72,10 @@ public class PoblacionDAOImpl implements PoblacionDAO {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdProvincia());
 			}
 			
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -80,10 +84,14 @@ public class PoblacionDAOImpl implements PoblacionDAO {
 				lista.add(poblacion);
 			}
 			
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 			
 		} catch (SQLException sqle) {			
-			logger.error(poblacion, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(poblacion, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {

@@ -14,18 +14,19 @@ public class UsuarioCriteria extends AbstractValueObject{
 
 	private Boolean servicio24;
 
-	private Boolean expertoNegocio;
-
 	private String orderBy;
 	
 	private Long idUsuario;
 
 	private Integer idPoblacion;
-	
-	//busca los favoritos que tiene un usuario
+
 	private Long idUsuarioFavorito;
 	
-	private String email;
+	private String emailActivo;
+	
+	private String emailExistente;
+	
+
 	
 	
 	
@@ -73,13 +74,6 @@ public class UsuarioCriteria extends AbstractValueObject{
 		this.servicio24 = servicio24;
 	}
 
-	public Boolean getExpertoNegocio() {
-		return expertoNegocio;
-	}
-
-	public void setExpertoNegocio(Boolean expertoNegocio) {
-		this.expertoNegocio = expertoNegocio;
-	}
 
 	public String getOrderBy() {
 		return orderBy;
@@ -113,11 +107,19 @@ public class UsuarioCriteria extends AbstractValueObject{
 		this.idUsuarioFavorito = idUsuarioFavorito;
 	}
 
-	public String getEmail() {
-		return email;
+	public String getEmailActivo() {
+		return emailActivo;
 	}
 
-	public void setEmail(String email) {
-		this.email = email;
+	public void setEmailActivo(String emailActivo) {
+		this.emailActivo = emailActivo;
+	}
+
+	public String getEmailExistente() {
+		return emailExistente;
+	}
+
+	public void setEmailExistente(String emailExistente) {
+		this.emailExistente = emailExistente;
 	}
 }

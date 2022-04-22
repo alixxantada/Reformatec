@@ -33,7 +33,7 @@ public class ProvinciaServiceImpl implements ProvinciaService {
 	public List<Provincia> findByCriteria(Integer idProvincia)
 			throws DataException, ServiceException {
 
-		logger.trace("Begin");
+		logger.traceEntry();
 
 		Connection c = null;
 		List<Provincia> lista = new ArrayList<Provincia>();
@@ -50,10 +50,12 @@ public class ProvinciaServiceImpl implements ProvinciaService {
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(lista,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(lista,sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {

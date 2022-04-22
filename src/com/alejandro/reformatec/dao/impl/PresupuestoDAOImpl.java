@@ -43,7 +43,9 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 	public Results<PresupuestoDTO> findByCriteria(Connection c, PresupuestoCriteria pc, int startIndex, int pageSize)
 			throws DataException{
 
-		logger.trace("Begin");
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -70,7 +72,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			}
 
 			if(pc.getIdProveedor()!=null) {
-				DAOUtils.addClause(queryString, first," uu.ID_USUARIO = ? ");
+				DAOUtils.addClause(queryString, first," u.ID_USUARIO = ? ");
 				first = false;
 			}
 
@@ -110,8 +112,10 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdTipoEstadoPresupuesto());
 			}
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			List<PresupuestoDTO> presupuestos = new ArrayList<PresupuestoDTO>();
@@ -130,11 +134,15 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			results.setData(presupuestos);
 			results.setTotal(DAOUtils.getTotalRows(rs));
 
-			logger.trace("End ");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End ");
+			}
 
 
 		} catch (SQLException sqle) {			
-			logger.error("Error SQL: "+results, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+results, sqle);
+			}			
 			throw new DataException("Error lista: "+results, sqle);
 
 		} finally {
@@ -149,9 +157,12 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
 
 	@Override
-	public long create(Connection c, PresupuestoDTO presupuesto) 
+	public long create(Connection c, PresupuestoDTO presupuesto, List<LineaPresupuestoDTO> lineas) 
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -162,11 +173,9 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 					+ " IMPORTE_TOTAL, ID_TIPO_ESTADO_PRESUPUESTO, ID_PROYECTO, ID_USUARIO_CREADOR_PRESUPUESTO) "
 					+ " VALUES (?,?,?,?,?,?,?) ";
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			int i  = 1;
-
 
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getTitulo());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getDescripcion());
@@ -176,23 +185,37 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdProyecto());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdUsuarioCreadorPresupuesto());
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			int insertedRows = preparedStatement.executeUpdate();
+			
 			if (insertedRows==1) {
 				rs = preparedStatement.getGeneratedKeys();
 				if(rs.next()) {
 					presupuesto.setIdPresupuesto(rs.getLong(1));
 				}
-			} else {
-				logger.error(presupuesto);
+			} else {				
+				if (logger.isErrorEnabled()) {
+					logger.error(presupuesto);
+				}				
 				throw new DataException(""+presupuesto.getIdPresupuesto());
 			}
 
-			logger.trace("End");
+			for (LineaPresupuestoDTO lineaPresupuestoDTO : lineas) {
+				lineaPresupuestoDTO.setIdPresupuesto(presupuesto.getIdPresupuesto());
+				lineaPresupuestoDAO.create(c,lineaPresupuestoDTO);
+			}
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(presupuesto, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(presupuesto, sqle);
+			}
 			throw new DataException("Presupuesto: "+presupuesto.getIdPresupuesto()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -206,9 +229,12 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
 
 	@Override
-	public int update(Connection c, PresupuestoDTO presupuesto) 
+	public int update(Connection c, PresupuestoDTO presupuesto, List<LineaPresupuestoDTO> lineas) 
 			throws DataException, PresupuestoNotFoundException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -227,7 +253,6 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 					+ "			ID_USUARIO_CREADOR_PRESUPUESTO = ? "
 					+ "  WHERE ID_PRESUPUESTO = ? ";
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql);
 
 			int i  = 1;
@@ -238,22 +263,35 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getImporteTotal());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdTipoEstadoPresupuesto());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdProyecto());
-			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdUsuarioCreadorProyecto());
+			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdUsuarioCreadorPresupuesto());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdPresupuesto());
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			updatedRows = preparedStatement.executeUpdate();
 
-			if (updatedRows!=1) {
-				logger.error(presupuesto);
+			if (updatedRows!=1) {				
+				if (logger.isErrorEnabled()) {
+					logger.error(presupuesto);
+				}				
 				throw new PresupuestoNotFoundException("Presupuesto: "+presupuesto.getIdPresupuesto());
 			}
 
-			logger.trace("End");
+			for (LineaPresupuestoDTO lineaPresupuestoDTO : lineas) {
+				lineaPresupuestoDTO.setIdPresupuesto(presupuesto.getIdPresupuesto());
+				lineaPresupuestoDAO.create(c,lineaPresupuestoDTO);
+			}
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(presupuesto, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(presupuesto, sqle);
+			}
 			throw new DataException("Presupuesto: "+presupuesto.getIdPresupuesto()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -269,7 +307,10 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 	@Override
 	public int updateStatus(Connection c, Long idPresupuesto, Integer idEstadoPresupuesto) 
 			throws DataException, PresupuestoNotFoundException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -290,18 +331,24 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, idEstadoPresupuesto);
 			JDBCUtils.setParameter(preparedStatement, i++, idPresupuesto);
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows!=1) {
 				throw new PresupuestoNotFoundException("Presupuesto: "+idPresupuesto);
 			}
-
-			logger.trace("End");
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException("Presupuesto: "+idPresupuesto+": "+sqle.getMessage() ,sqle);
 
 		} finally {

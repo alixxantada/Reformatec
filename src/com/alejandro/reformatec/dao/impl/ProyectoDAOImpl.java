@@ -50,7 +50,10 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 	@Override
 	public Results<ProyectoDTO> findByCriteria(Connection c, ProyectoCriteria pc, int startIndex, int pageSize)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -73,17 +76,20 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			boolean first = true;
 
 			if (!StringUtils.isEmpty(pc.getDescripcion())) {
-				DAOUtils.addClause(queryString, first," UPPER(p.DESCRIPCION) LIKE UPPER(?) ");
+				DAOUtils.addClause(queryString, first," UPPER(p.DESCRIPCION) LIKE UPPER(?) OR (UPPER(p.TITULO) LIKE UPPER(?))");
 				first = false;
 			}
+			
 			if (pc.getIdProvincia()!=null) {
 				DAOUtils.addClause(queryString, first," pl.ID_PROVINCIA = ? ");
 				first = false;
 			}
+			
 			if(pc.getPresupuestoMaxMinimo()!=null) {
 				DAOUtils.addClause(queryString, first," p.PRESUPUESTO_MAX >= ? ");
 				first = false;
 			}
+			
 			if(pc.getPresupuestoMaxMaximo()!=null) {
 				DAOUtils.addClause(queryString, first," p.PRESUPUESTO_MAX <= ? ");
 				first = false;
@@ -93,22 +99,31 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 				DAOUtils.addClause(queryString, first," pe.ID_ESPECIALIZACION = ? ");
 				first = false;
 			}
+			
 			if(pc.getIdProyecto()!=null) {
 				DAOUtils.addClause(queryString, first," p.ID_PROYECTO = ? ");
 				first = false;
 			}
+			
 			if(pc.getIdUsuarioCreador()!=null) {
-				DAOUtils.addClause(queryString, first," p.ID_USUARIO_CREADOR_PROYECTO = ? ");
+				DAOUtils.addClause(queryString, first," p.ID_USUARIO_CREADOR_PROYECTO = ? GROUP BY p.ID_PROYECTO ORDER BY p.FECHA_CREACION DESC  ");
 				first = false;
 			}
 
-			queryString.append(" AND tep.ID_TIPO_ESTADO_PROYECTO = 1 GROUP BY u.ID_USUARIO ");
-
-			if(pc.getOrderBy()!=null) {
-				queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(pc.getOrderBy()));
+			
+			if(pc.getIdProyecto()!=null || pc.getIdUsuarioCreador()!=null) {
+				
 			} else {
-				queryString.append(" ORDER BY p.FECHA_CREACION DESC ");
+				
+				queryString.append(" AND tep.ID_TIPO_ESTADO_PROYECTO = 1 GROUP BY u.ID_USUARIO ");
+
+				if(pc.getOrderBy()!=null) {
+					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(pc.getOrderBy()));
+				} else {
+					queryString.append(" ORDER BY p.FECHA_CREACION DESC ");
+				}
 			}
+			
 
 			// Create prepared statement
 			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -118,27 +133,38 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			if(pc.getDescripcion()!=null) {
 				StringBuilder a = new StringBuilder("%");
 				a.append(pc.getDescripcion()).append("%");
-				JDBCUtils.setParameter(preparedStatement, i++, a.toString());
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // PRIMER VALOR (descripcion proyecto)
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString());// SEGUNDO VALOR (nombre perfil)
 			}
+			
 			if(pc.getIdProvincia()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdProvincia());
 			}
+			
 			if(pc.getPresupuestoMaxMinimo()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getPresupuestoMaxMinimo());
 			}
+			
 			if(pc.getPresupuestoMaxMaximo()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getPresupuestoMaxMaximo());
 			}
+			
 			if (pc.getIdEspecializacion()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdEspecializacion());		
 			}	
+			
 			if (pc.getIdProyecto()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdProyecto());		
 			}	
+			
 			if (pc.getIdUsuarioCreador()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdUsuarioCreador());		
-			}	
-			logger.trace(preparedStatement);
+			}
+			
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			List<ProyectoDTO> proyectos = new ArrayList<ProyectoDTO>();
@@ -156,10 +182,14 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			results.setData(proyectos);
 			results.setTotal(DAOUtils.getTotalRows(rs));
 
-			logger.trace("End"+results);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End"+results);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error SQL: "+results, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+results, sqle);
+			}
 			throw new DataException("Error lista: "+results, sqle);
 
 		} finally {
@@ -172,9 +202,12 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 
 
 	@Override
-	public long create(Connection c, ProyectoDTO proyecto)
+	public long create(Connection c, ProyectoDTO proyecto, List<Integer> especializaciones)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -185,8 +218,6 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 					+ " PRESUPUESTO_MAX, ID_USUARIO_CREADOR_PROYECTO, ID_TIPO_ESTADO_PROYECTO) "
 					+ " VALUES (?,?,?,?,?,?,?) ";
 
-
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			int i  = 1;
@@ -199,24 +230,36 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdUsuarioCreadorProyecto());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdTipoEstadoProyecto());
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			int insertedRows = preparedStatement.executeUpdate();
 			if (insertedRows==1) {
 				rs = preparedStatement.getGeneratedKeys();
 				if(rs.next()) {
 					proyecto.setIdProyecto(rs.getLong(1));
 				}
-
+				
+				if (especializaciones!=null) {
+					
+					for (Integer idEspecializacion : especializaciones) {
+						especializacionDAO.crearEspecializacionProyecto(c, proyecto.getIdProyecto(), idEspecializacion);	
+					}									
+				}
 
 			} else {
 				throw new DataException(proyecto.getTitulo());
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(proyecto,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyecto,sqle);
+			}
 			throw new DataException(proyecto.getTitulo(), sqle);
 
 		} finally {
@@ -230,9 +273,12 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 
 
 	@Override
-	public int update(Connection c, ProyectoDTO proyecto)
+	public int update(Connection c, ProyectoDTO proyecto, List<Integer> especializaciones)
 			throws DataException, ProyectoNotFoundException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -243,12 +289,9 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 
 			String sql =" UPDATE PROYECTO "
 					+ "	SET		TITULO = ?,"
-					+ "			FECHA_CREACION= ?,"
 					+ "			DESCRIPCION= ?,"
 					+ "			PRESUPUESTO_MAX= ?,"
-					+ "			ID_POBLACION= ?,"
-					+ "			ID_USUARIO_CREADOR_PROYECTO= ?,"
-					+ "			ID_TIPO_ESTADO_PROYECTO= ? "
+					+ "			ID_POBLACION= ? "
 					+ "  WHERE ID_PROYECTO = ? ";
 
 			//create prepared statement
@@ -257,25 +300,35 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			int i  = 1;
 
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getTitulo());
-			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getFechaCreacion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getDescripcion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getPresupuestoMax());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdPoblacion());
-			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdUsuarioCreadorProyecto());
-			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdTipoEstadoProyecto());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdProyecto());
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 			updatedRows = preparedStatement.executeUpdate();
+			
+			if (especializaciones!=null) {
+				
+				for (Integer idEspecializacion : especializaciones) {
+					especializacionDAO.crearEspecializacionProyecto(c, proyecto.getIdProyecto(), idEspecializacion);	
+				}									
+			}
+			
 			if (updatedRows!=1) {
 				throw new ProyectoNotFoundException("Proyecto: "+proyecto.getIdProyecto());
 			}
-
-			logger.trace("End");
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(proyecto,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyecto,sqle);
+			}
 			throw new DataException("Proyecto: "+proyecto.getIdProyecto()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -290,7 +343,10 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 	@Override
 	public int updateStatus(Connection c, Long idProyecto, Integer idEstadoProyecto) 
 			throws DataException, ProyectoNotFoundException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -310,17 +366,24 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, idEstadoProyecto);
 			JDBCUtils.setParameter(preparedStatement, i++, idProyecto);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows!=1) {
 				throw new ProyectoNotFoundException("Proyecto: "+idProyecto);
 			}
-
-			logger.trace("End");
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(idProyecto,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(idProyecto,sqle);
+			}
 			throw new DataException("Proyecto: "+idProyecto+": "+sqle.getMessage() ,sqle);
 
 		} finally {

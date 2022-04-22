@@ -27,7 +27,8 @@ public class ContadorServiceImpl implements ContadorService{
 	
 	public Integer cliente()
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+		
+		logger.traceEntry();
 
 		Connection c = null;
 		Integer clientes = null;		
@@ -44,10 +45,12 @@ public class ContadorServiceImpl implements ContadorService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 			
 		} catch (SQLException sqle) {
-			logger.error(clientes,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(clientes,sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -60,7 +63,8 @@ public class ContadorServiceImpl implements ContadorService{
 	
 	public Integer proveedor()
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+		
+		logger.traceEntry();
 
 		Connection c = null;
 		Integer proveedores = null;		
@@ -77,10 +81,12 @@ public class ContadorServiceImpl implements ContadorService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 			
 		} catch (SQLException sqle) {
-			logger.error(proveedores,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proveedores,sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -93,7 +99,8 @@ public class ContadorServiceImpl implements ContadorService{
 	
 	public Integer proyectoActivo()
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+		
+		logger.traceEntry();
 
 		Connection c = null;
 		Integer proyectos = null;		
@@ -110,10 +117,12 @@ public class ContadorServiceImpl implements ContadorService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 			
 		} catch (SQLException sqle) {
-			logger.error(proyectos,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyectos,sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -126,7 +135,8 @@ public class ContadorServiceImpl implements ContadorService{
 	
 	public Integer proyectoFinalizado()
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+		
+		logger.traceEntry();
 
 		Connection c = null;
 		Integer proyectos = null;		
@@ -142,10 +152,12 @@ public class ContadorServiceImpl implements ContadorService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 			
 		} catch (SQLException sqle) {
-			logger.error(proyectos,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyectos,sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -158,7 +170,8 @@ public class ContadorServiceImpl implements ContadorService{
 	
 	public Integer trabajoRealizado()
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+		
+		logger.traceEntry();
 
 		Connection c = null;
 		Integer trabajosRealizados = null;		
@@ -174,10 +187,12 @@ public class ContadorServiceImpl implements ContadorService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 			
 		} catch (SQLException sqle) {
-			logger.error(trabajosRealizados,sqle);
+			if (logger.isTraceEnabled()) {
+				logger.error(trabajosRealizados,sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {

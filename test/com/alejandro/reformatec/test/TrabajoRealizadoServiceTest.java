@@ -1,5 +1,8 @@
 package com.alejandro.reformatec.test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,7 +35,7 @@ public class TrabajoRealizadoServiceTest {
 		trc.setDescripcion(null);
 		trc.setIdProvincia(null);
 		trc.setIdProveedor(null);
-		trc.setIdTrabajoRealizado(1L);
+		trc.setIdTrabajoRealizado(null);
 		trc.setIdEspecializacion(null);
 		////////////////////
 		trc.setOrderBy(null);
@@ -65,28 +68,39 @@ public class TrabajoRealizadoServiceTest {
 	public void testCreate() 
 			throws ServiceException, DataException {
 		logger.trace("Begin...");
-
+		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
+		
 		///////////////////////////////////////////////
 		String titulo = "Prueba trabajo realizado";
 		String descripcion = " este trabajo realizado parece que va tirando";
 		Long idUsuarioCreador = 2L;
 		Integer idPoblacion = 1;
+		Long idProyectoAsociado = null;
+		
+		idsEspecializaciones.add(1);
+		idsEspecializaciones.add(2);
+		idsEspecializaciones.add(3);
 		//////////////////////////////////////////////
 		trabajoRealizado.setTitulo(titulo);
 		trabajoRealizado.setDescripcion(descripcion);
 		trabajoRealizado.setIdUsuarioCreadorTrabajo(idUsuarioCreador);
 		trabajoRealizado.setIdPoblacion(idPoblacion);
+		trabajoRealizado.setIdProyectoAsociado(idProyectoAsociado);
 
 		try {
 
-			trabajoRealizadoservice.create(trabajoRealizado);
+			trabajoRealizadoservice.create(trabajoRealizado, idsEspecializaciones);
 
 			int startIndex = 1;
 			int pageSize = 1;
 
 			trc.setIdTrabajoRealizado(trabajoRealizado.getIdTrabajoRealizado());
 			results = trabajoRealizadoservice.findByCriteria(trc, startIndex, pageSize);
-			logger.info("Trabajo Realizado Creado!: "+results.getData());
+			
+			for(TrabajoRealizadoDTO tr : results.getData()) {
+				logger.info("Trabajo Realizado Actualizado!: "+tr);	
+			}
+			
 
 			logger.trace("End!");
 		} catch (DataException de) { 
@@ -107,8 +121,13 @@ public class TrabajoRealizadoServiceTest {
 		String titulo = "trabajo de pruebas";
 		String descripcion = "probando a cambiar descripcion del trabajo realizado";
 		int idPoblacion = 1;
-		Long idProyecto = null;
-		//Long idProyectoAsociado = 1L;
+		Long idProyectoAsociado = null;
+		
+		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
+		
+		idsEspecializaciones.add(1);
+		idsEspecializaciones.add(2);
+		idsEspecializaciones.add(3);
 		///////////////////////////
 		try {
 
@@ -119,16 +138,22 @@ public class TrabajoRealizadoServiceTest {
 			results = trabajoRealizadoservice.findByCriteria(trc, startIndex, pageSize);
 			logger.info("Trabajo Realizado Antes de actualizar!: "+results.getData());
 
+			
+			trabajoRealizado.setIdTrabajoRealizado(idTrabajoRealizado);
 			trabajoRealizado.setTitulo(titulo);
 			trabajoRealizado.setDescripcion(descripcion);
 			trabajoRealizado.setIdPoblacion(idPoblacion);
-			trabajoRealizado.setIdProyectoAsociado(idProyecto);
+			trabajoRealizado.setIdProyectoAsociado(idProyectoAsociado);
 			//TODO solo se debería poder asociar proyectos que tuvieran presupuestos aceptados por parte del creador del trabajo realizado..
 
-			trabajoRealizadoservice.update(trabajoRealizado);
+			trabajoRealizadoservice.update(trabajoRealizado, idsEspecializaciones);
 
 			results = trabajoRealizadoservice.findByCriteria(trc, startIndex, pageSize);
-			logger.info("Trabajo Realizado Actualizado!: "+results.getData());
+			
+			for(TrabajoRealizadoDTO tr : results.getData()) {
+				logger.info("Trabajo Realizado Actualizado!: "+tr);	
+			}
+			
 
 			logger.trace("End!");
 		} catch(DataException de) {
@@ -179,9 +204,9 @@ public class TrabajoRealizadoServiceTest {
 		TrabajoRealizadoServiceTest test = new TrabajoRealizadoServiceTest();
 
 		test.testFindByCriteria();
-		//		test.testCreate();
-		//		test.testUpdate();
-		//		test.testupdateStatus();
+		//test.testCreate();
+		//test.testUpdate();
+		//test.testupdateStatus();
 	}
 
 }

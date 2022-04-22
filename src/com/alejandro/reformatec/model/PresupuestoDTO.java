@@ -33,12 +33,12 @@ public class PresupuestoDTO extends AbstractValueObject{
 	}
 
 
-
+	
 	public Long getIdPresupuesto() {
 		return idPresupuesto;
 	}
 
-
+	
 
 	public void setIdPresupuesto(Long idPresupuesto) {
 		this.idPresupuesto = idPresupuesto;
@@ -81,17 +81,12 @@ public class PresupuestoDTO extends AbstractValueObject{
 	}
 
 
-	//TODO aqui he intentado poner el importe total cogiendolo de los importes de las lineas...Recorro la lista de LineaPresupuestoDTO y acumulo los importe de cada linea en la variable importetotal..
+
 	public Double getImporteTotal() {
-		double importetotal = 0.0D;
-		if(lineas!=null) {
-			for (LineaPresupuestoDTO linea: lineas) {
-				importetotal+=linea.getImporte();
-			}
-			importeTotal = importetotal;
-		}
 		return importeTotal;
 	}
+
+
 
 	public void setImporteTotal(Double importeTotal) {
 		this.importeTotal = importeTotal;

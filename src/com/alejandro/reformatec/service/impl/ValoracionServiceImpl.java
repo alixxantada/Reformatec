@@ -2,7 +2,6 @@ package com.alejandro.reformatec.service.impl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.logging.log4j.LogManager;
@@ -14,6 +13,7 @@ import com.alejandro.reformatec.dao.util.ConnectionManager;
 import com.alejandro.reformatec.dao.util.JDBCUtils;
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.ServiceException;
+import com.alejandro.reformatec.model.EstadoValoracion;
 import com.alejandro.reformatec.model.Results;
 import com.alejandro.reformatec.model.ValoracionCriteria;
 import com.alejandro.reformatec.model.ValoracionDTO;
@@ -34,7 +34,8 @@ public class ValoracionServiceImpl implements ValoracionService{
 	@Override
 	public Results<ValoracionDTO> findByCriteria(ValoracionCriteria vc, int startIndex, int pageSize)
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		Results<ValoracionDTO> results = new Results<ValoracionDTO>();
@@ -51,10 +52,12 @@ public class ValoracionServiceImpl implements ValoracionService{
 			// fin de la transacción
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(results,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(results,sqle);
+			}
 			throw new DataException(sqle);		
 
 		} finally {
@@ -68,7 +71,8 @@ public class ValoracionServiceImpl implements ValoracionService{
 	@Override
 	public long create(ValoracionDTO valoracion) 
 			throws DataException, ServiceException {
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		boolean commitOrRollback = false;
@@ -78,21 +82,22 @@ public class ValoracionServiceImpl implements ValoracionService{
 
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
-
-			// Aqui es donde se hace set de la hora que se crea
-			Calendar cal=Calendar.getInstance();
-			Date date=cal.getTime();
-			valoracion.setFechaHoraCreacion(date);
+			Date fechaHora = new Date();
+			valoracion.setFechaHoraCreacion(fechaHora);
+			
+			valoracion.setIdTipoEstadoValoracion(EstadoValoracion.VALORACION_ACTIVA);
 
 			valoracionDAO.create(c, valoracion);
 
 			// fin de la transacción
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(valoracion,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(valoracion,sqle);
+			}
 			throw new DataException(sqle);		
 
 		} finally {
@@ -107,7 +112,8 @@ public class ValoracionServiceImpl implements ValoracionService{
 	@Override
 	public void updateStatus(Long idValoracion, Integer idEstadoValoracion) 
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		boolean commitOrRollback = false;
@@ -123,10 +129,12 @@ public class ValoracionServiceImpl implements ValoracionService{
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException(sqle);	
 
 		} finally {

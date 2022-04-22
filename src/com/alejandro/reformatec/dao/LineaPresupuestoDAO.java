@@ -17,9 +17,6 @@ public interface LineaPresupuestoDAO {
 	public long create(Connection c, LineaPresupuestoDTO lineapresupuesto)
 			throws DataException;
 
-	//	public int update(Connection c, LineaPresupuestoDTO lineapresupuesto) 
-	//			throws DataException, LineaPresupuestoNotFoundException;
-
 	// devuelve el numero de filas borradas?
 	public long deleteById(Connection c, Long idLineaPresupuesto) 
 			throws DataException, LineaPresupuestoNotFoundException;

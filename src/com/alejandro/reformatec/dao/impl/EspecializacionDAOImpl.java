@@ -29,6 +29,9 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 	public List<Especializacion> findByCriteria(Connection c, EspecializacionCriteria ec)
 			throws DataException{
 
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -65,17 +68,17 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 				DAOUtils.addClause(queryString, first," ue.ID_USUARIO = ? ");
 				first = false;
 			}	
-		
+
 			queryString.append(" GROUP BY e.ID_ESPECIALIZACION ORDER BY e.ID_ESPECIALIZACION ASC ");
 
 			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
-			
+
 			if(ec.getIdEspecializacion()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, ec.getIdEspecializacion());
 			}
-			
+
 			if(ec.getIdProyecto()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, ec.getIdProyecto());
 			}
@@ -88,7 +91,9 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 				JDBCUtils.setParameter(preparedStatement, i++, ec.getIdUsuario());
 			}	
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -97,10 +102,14 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 				lista.add(especializacion);
 			}
 
-			logger.trace("End ");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End ");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error SQL: "+lista, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+lista, sqle);
+			}
 			throw new DataException("Error lista: "+lista, sqle);
 
 		} finally {
@@ -113,73 +122,43 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 
 
 
-	public void crearEspecializacionUsuario (Connection c, Long idUsuario, List<Integer> idsEspecializaciones)
+	public void crearEspecializacionUsuario (Connection c, Long idUsuario, Integer idEspecializacion)
 			throws DataException{
-		PreparedStatement preparedStatement = null;
-		ResultSet rs = null;
 
-		try {
-
-			for(Integer idEspecializacion : idsEspecializaciones) {
-
-				String sql = " INSERT INTO USUARIO_ESPECIALIZACION(ID_USUARIO, ID_ESPECIALIZACION) "
-						+ " VALUES (?,?) ";
-
-				//create prepared statement
-				preparedStatement = c.prepareStatement(sql);
-
-				int i  = 1;
-
-				JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
-				JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
-
-				logger.trace(preparedStatement);
-				preparedStatement.executeUpdate();
-
-			}
-
-			logger.trace("End");
-
-		} catch (SQLException sqle) {			
-			logger.error(sqle);
-			throw new DataException(sqle);
-
-		} finally {
-			JDBCUtils.close(rs);
-			JDBCUtils.close(preparedStatement);
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
 		}
-	}
 
-
-
-
-	public void crearEspecializacionProyecto (Connection c, Long idProyecto, List<Integer> idsEspecializaciones)
-			throws DataException{
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
 
 		try {
 
-			for(Integer idEspecializacion : idsEspecializaciones) {
+			String sql = " INSERT INTO USUARIO_ESPECIALIZACION(ID_USUARIO, ID_ESPECIALIZACION) "
+					+ " VALUES (?,?) ";
 
-				String sql = " INSERT INTO PROYECTO_ESPECIALIZACION(ID_PROYECTO, ID_ESPECIALIZACION) "
-						+ " VALUES (?,?) ";
+			preparedStatement = c.prepareStatement(sql);
 
-				//create prepared statement
-				preparedStatement = c.prepareStatement(sql);
+			int i  = 1;
 
-				int i  = 1;
+			JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
+			JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
 
-				JDBCUtils.setParameter(preparedStatement, i++, idProyecto);
-				JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			preparedStatement.executeUpdate();
 
-				logger.trace(preparedStatement);
-				preparedStatement.executeUpdate();
 
+
+			if (logger.isTraceEnabled()) {
 				logger.trace("End");
 			}
+
 		} catch (SQLException sqle) {			
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {
@@ -191,34 +170,41 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 
 
 
-	public void crearEspecializacionTrabajo (Connection c, Long idTrabajo, List<Integer> idsEspecializaciones)
+	public void crearEspecializacionProyecto (Connection c, Long idProyecto, Integer idEspecializacion)
 			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
+
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
 
 		try {
 
-			for(Integer idEspecializacion : idsEspecializaciones) {
+			String sql = " INSERT INTO PROYECTO_ESPECIALIZACION(ID_PROYECTO, ID_ESPECIALIZACION) "
+					+ " VALUES (?,?) ";
 
-				String sql = " INSERT INTO TRABAJO_REALIZADO_ESPECIALIZACION(ID_TRABAJO_REALIZADO, ID_ESPECIALIZACION) "
-						+ " VALUES (?,?) ";
+			preparedStatement = c.prepareStatement(sql);
 
-				//create prepared statement
-				preparedStatement = c.prepareStatement(sql);
+			int i  = 1;
 
-				int i  = 1;
+			JDBCUtils.setParameter(preparedStatement, i++, idProyecto);
+			JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
 
-				JDBCUtils.setParameter(preparedStatement, i++, idTrabajo);
-				JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			preparedStatement.executeUpdate();
 
-				logger.trace(preparedStatement);
-				preparedStatement.executeUpdate();
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
 			}
 
-			logger.trace("End");
-
 		} catch (SQLException sqle) {			
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {
@@ -226,6 +212,190 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 			JDBCUtils.close(preparedStatement);
 		}
 	}
+
+
+
+
+	public void crearEspecializacionTrabajo (Connection c, Long idTrabajo, Integer idEspecializacion)
+			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		try {
+
+			String sql = " INSERT INTO TRABAJO_REALIZADO_ESPECIALIZACION(ID_TRABAJO_REALIZADO, ID_ESPECIALIZACION) "
+					+ " VALUES (?,?) ";
+
+			preparedStatement = c.prepareStatement(sql);
+
+			int i  = 1;
+
+			JDBCUtils.setParameter(preparedStatement, i++, idTrabajo);
+			JDBCUtils.setParameter(preparedStatement, i++, idEspecializacion);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			preparedStatement.executeUpdate();
+
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
+
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
+			throw new DataException(sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+	}
+
+
+
+	public void deleteEspecializacionUsuario (Connection c, Long idUsuario)
+			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		try {
+			String sql =" DELETE FROM USUARIO_ESPECIALIZACION ue"
+					+ "  WHERE ID_USUARIO = ? ";
+
+			//create prepared statement
+			preparedStatement = c.prepareStatement(sql);
+			int i  = 1;
+			JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			preparedStatement.executeUpdate();
+
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(idUsuario, sqle);
+			}
+			throw new DataException("idUsuario: "+idUsuario+": "+sqle.getMessage() ,sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+	}
+
+
+
+
+	public void deleteEspecializacionProyecto (Connection c, Long idProyecto)
+			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		try {
+			String sql =" DELETE FROM PROYECTO_ESPECIALIZACION pe"
+					+ "  WHERE ID_PROYECTO = ? ";
+
+			//create prepared statement
+			preparedStatement = c.prepareStatement(sql);
+			int i  = 1;
+			JDBCUtils.setParameter(preparedStatement, i++, idProyecto);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			preparedStatement.executeUpdate();
+
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(idProyecto, sqle);
+			}
+			throw new DataException("idProyecto: "+idProyecto+": "+sqle.getMessage() ,sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+	}
+
+
+
+
+	public void deleteEspecializacionTrabajo (Connection c, Long idTrabajo)
+			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		try {
+			String sql =" DELETE FROM TRABAJO_REALIZADO_ESPECIALIZACION pe"
+					+ "  WHERE ID_TRABAJO_REALIZADO = ? ";
+
+			//create prepared statement
+			preparedStatement = c.prepareStatement(sql);
+			int i  = 1;
+			JDBCUtils.setParameter(preparedStatement, i++, idTrabajo);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			preparedStatement.executeUpdate();
+
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(idTrabajo, sqle);
+			}
+			throw new DataException("idTrabajo: "+idTrabajo+": "+sqle.getMessage() ,sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+	}
+
 
 
 

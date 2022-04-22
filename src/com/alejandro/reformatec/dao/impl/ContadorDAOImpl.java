@@ -29,7 +29,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 	@Override
 	public Integer cliente(Connection c)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -46,7 +49,9 @@ public class ContadorDAOImpl implements ContadorDAO {
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -57,10 +62,14 @@ public class ContadorDAOImpl implements ContadorDAO {
 
 			clientes = lista.size();
 			
-			logger.trace("End cantidad clientes: "+clientes);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End cantidad clientes: "+clientes);
+			}
 			
 		} catch (SQLException sqle) {
-			logger.error(clientes, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(clientes, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -70,49 +79,15 @@ public class ContadorDAOImpl implements ContadorDAO {
 		return clientes;
 	}
 
-	/*
-	@Override
-	public Integer cliente(Connection c)
-			throws DataException{
-		logger.trace("Begin");
-
-		PreparedStatement preparedStatement = null;
-		ResultSet rs = null;
-
-		Integer clientes = null;		
-
-
-		try {			
-			String sql ="SELECT COUNT(u.ID_USUARIO) "
-					+ " FROM USUARIO u "
-					+ " WHERE ((u.ID_TIPO_USUARIO = 1)&&((u.ID_TIPO_ESTADO_CUENTA = 1)||(u.ID_TIPO_ESTADO_CUENTA = 2)))";
-
-			//create prepared statement
-			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-
-			logger.trace(preparedStatement);
-			rs = preparedStatement.executeQuery();
-
-		//TODO quería hacerlo sacando directamente el resultado del count en la variable clientes...
-			
-			logger.trace("End cantidad clientes: "+clientes);
-		} catch (SQLException sqle) {
-			logger.error(clientes, sqle);
-			throw new DataException(sqle);
-		} finally {
-			JDBCUtils.close(rs);
-			JDBCUtils.close(preparedStatement);
-		}
-		return clientes;
-	}
-
-*/
 	
 	
 	@Override
 	public Integer proveedor(Connection c)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -130,7 +105,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -140,10 +118,15 @@ public class ContadorDAOImpl implements ContadorDAO {
 			}
 
 			proveedores = lista.size();
-			logger.trace("End cantidad proveedores: "+proveedores);
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End cantidad proveedores: "+proveedores);
+			}
 			
 		} catch (SQLException sqle) {
-			logger.error(proveedores, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proveedores, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -158,7 +141,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 	@Override
 	public Integer proyectoActivo(Connection c)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -176,7 +162,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -186,10 +175,15 @@ public class ContadorDAOImpl implements ContadorDAO {
 			}
 
 			proyectosActivos = lista.size();
-			logger.trace("End cantidad proyectos activos: "+proyectosActivos);
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End cantidad proyectos activos: "+proyectosActivos);
+			}
 			
 		} catch (SQLException sqle) {
-			logger.error(proyectosActivos, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyectosActivos, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -204,7 +198,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 	@Override
 	public Integer proyectoFinalizado(Connection c)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -222,7 +219,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -232,10 +232,15 @@ public class ContadorDAOImpl implements ContadorDAO {
 			}
 
 			proyectosFinalizados = lista.size();
-			logger.trace("End cantidad proyectos finalizados: "+proyectosFinalizados);
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End cantidad proyectos finalizados: "+proyectosFinalizados);
+			}
 			
 		} catch (SQLException sqle) {
-			logger.error(proyectosFinalizados, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(proyectosFinalizados, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {
@@ -250,7 +255,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 	@Override
 	public Integer trabajoRealizado(Connection c)
 			throws DataException{
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -268,7 +276,10 @@ public class ContadorDAOImpl implements ContadorDAO {
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -278,10 +289,15 @@ public class ContadorDAOImpl implements ContadorDAO {
 			}
 
 			trabajosRealizados = lista.size();
-			logger.trace("End cantidad de trabajos realizados: "+trabajosRealizados);
+			
+			if (logger.isTraceEnabled()) {
+				logger.trace("End cantidad de trabajos realizados: "+trabajosRealizados);
+			}
 			
 		} catch (SQLException sqle) {
-			logger.error(trabajosRealizados, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(trabajosRealizados, sqle);
+			}
 			throw new DataException(sqle);
 			
 		} finally {

@@ -40,7 +40,7 @@ public class PresupuestoServiceTest {
 		pc.setIdPresupuesto(null);
 		pc.setIdProveedor(null);
 		pc.setIdProyecto(null);
-		pc.setIdTipoEstadoPresupuesto(2);
+		pc.setIdTipoEstadoPresupuesto(null);
 
 
 		///////////////////////////////////////////////////////
@@ -65,34 +65,30 @@ public class PresupuestoServiceTest {
 
 		PresupuestoDTO presupuesto = null;
 		presupuesto = new PresupuestoDTO();
-
+		List<LineaPresupuestoDTO> lineas = new ArrayList<LineaPresupuestoDTO>();
+		
 		/////////////////////////////////////////////////
-		String titulo = " Presupuesto de pruebas";
+		String titulo = " Presupuesto de pruebas88";
 		String descripcion = " probando a crear un presupuesto desde service";
-		Double importeTotal = 1700D;
-		int idTipoEstadoPresupuesto = 1;
+		
+		//Estos 2 los recibo en el servlet con input hidden en la jsp.
 		Long idProyecto = 1L;
 		Long idUsuarioCreadorPresupuesto = 1L;
-		////////////////////////////////////////////////
-		presupuesto.setTitulo(titulo);
-		presupuesto.setDescripcion(descripcion);
-		presupuesto.setImporteTotal(importeTotal);
-		presupuesto.setIdTipoEstadoPresupuesto(idTipoEstadoPresupuesto);
-		presupuesto.setIdProyecto(idProyecto);
-		presupuesto.setIdUsuarioCreadorPresupuesto(idUsuarioCreadorPresupuesto);
-
-		List<LineaPresupuestoDTO> lineas = new ArrayList<LineaPresupuestoDTO>();
-
+		
 		LineaPresupuestoDTO linea = new LineaPresupuestoDTO();
 
-		linea.setImporte(150D);
+		linea.setImporte(500D);
 		linea.setDescripcion("probando linea presupuesto descripcion");
 		lineas.add(linea);
 
-		linea.setImporte(250D);
+		linea.setImporte(500D);
 		linea.setDescripcion("probando linea presupuesto descripcion 22222");
 		lineas.add(linea);
-
+		////////////////////////////////////////////////
+		presupuesto.setTitulo(titulo);
+		presupuesto.setDescripcion(descripcion);
+		presupuesto.setIdProyecto(idProyecto);
+		presupuesto.setIdUsuarioCreadorPresupuesto(idUsuarioCreadorPresupuesto);
 
 		try {
 
@@ -123,13 +119,27 @@ public class PresupuestoServiceTest {
 		logger.trace("Begin...");	
 
 		presupuesto = new PresupuestoDTO();
+		List<LineaPresupuestoDTO> lineas = new ArrayList<LineaPresupuestoDTO>();
+		
 		////////////////////////////////////
-		Long idPresupuesto = 1L;
-		String titulo = "cambiando titulo de presupuesto";
+		Long idPresupuesto = 4L;
+		String titulo = "cambiando titulo de presupuesto22";
 		String descripcion = "probando a cambiar la descripcion del presupuesto";
-		Double importeTotal = 200D;
-		///////////// faltan las lineas de presupuesto
+		
+		LineaPresupuestoDTO linea = new LineaPresupuestoDTO();
+
+		linea.setImporte(600D);
+		linea.setDescripcion("probando linea presupuesto descripcion3366");
+		lineas.add(linea);
+
+		linea.setImporte(600D);
+		linea.setDescripcion("probando linea presupuesto descripcion 22222");
+		lineas.add(linea);
 		///////////////////////////////////
+		presupuesto.setTitulo(titulo);
+		presupuesto.setDescripcion(descripcion);
+		presupuesto.setIdPresupuesto(idPresupuesto);
+		
 		try {
 
 			int startIndex = 1;
@@ -139,12 +149,18 @@ public class PresupuestoServiceTest {
 			results = presupuestoservice.findByCriteria(pc, startIndex, pageSize);
 			logger.trace("Presupuesto antes de actualizar!: "+results.getData());
 
-			presupuesto.setTitulo(titulo);
-			presupuesto.setDescripcion(descripcion);
-			presupuesto.setImporteTotal(importeTotal);
-			//presupuesto.setLineas(null); nose como tratar con esto :S
+			
+			//TODO Esto lo recibo desde el servlet con input hidden.(idUsuarioCreadorProyecto/idUsuarioCreadorPresupuesto/idProyecto)
+			for(PresupuestoDTO pres : results.getData()) {
 
-			presupuestoservice.update(presupuesto);
+				Long idUsuarioCreadorPresupuesto = pres.getIdUsuarioCreadorPresupuesto();
+				presupuesto.setIdUsuarioCreadorPresupuesto(idUsuarioCreadorPresupuesto);
+				
+				Long idProyecto = pres.getIdProyecto();
+				presupuesto.setIdProyecto(idProyecto);
+			}	
+
+			presupuestoservice.update(presupuesto,lineas);
 
 			pc.setIdPresupuesto(idPresupuesto);
 			results = presupuestoservice.findByCriteria(pc, startIndex, pageSize);
@@ -204,7 +220,7 @@ public class PresupuestoServiceTest {
 
 		test.testFindByCriteria();
 		//test.testCreate();
-		//test.testUpdate();  TODO  (funciona, pero no updatea bien las lineas de presupuesto, y hay que actualizar la fecha/hora-- METER CAMPO NUEVO EN BBDD DE FECHA_HORA ACTUALIADA PARA PODER NOTIFICAR SI ALGO CAMBIA?)
+		//test.testUpdate();
 		//test.testupdateStatus();
 	}
 }

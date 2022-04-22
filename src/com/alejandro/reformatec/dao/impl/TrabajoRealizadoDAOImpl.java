@@ -26,6 +26,7 @@ import com.alejandro.reformatec.model.EspecializacionCriteria;
 import com.alejandro.reformatec.model.Results;
 import com.alejandro.reformatec.model.TrabajoRealizadoCriteria;
 import com.alejandro.reformatec.model.TrabajoRealizadoDTO;
+import com.alejandro.reformatec.model.UsuarioDTO;
 
 public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 
@@ -37,9 +38,9 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 
 		SORTING_CRITERIA_MAP = new HashMap<String, String>();
 
-		SORTING_CRITERIA_MAP.put("VAL", "AVG(v.NOTA_VALORACION) ");
-		SORTING_CRITERIA_MAP.put("NV", "tr.NUM_VISUALIZACION ");
-		SORTING_CRITERIA_MAP.put("FC", "tr.FECHA_CREACION ");		
+		SORTING_CRITERIA_MAP.put("VAL", "AVG(v.NOTA_VALORACION) DESC ");
+		SORTING_CRITERIA_MAP.put("NV", "tr.NUM_VISUALIZACION DESC ");
+		SORTING_CRITERIA_MAP.put("FC", "tr.FECHA_CREACION DESC ");		
 	}
 
 	private EspecializacionDAO especializacionDAO = null;
@@ -52,7 +53,10 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 	@Override
 	public Results<TrabajoRealizadoDTO> findByCriteria(Connection c, TrabajoRealizadoCriteria trc, int startIndex, int pageSize)
 			throws DataException{
-		logger.trace("Begin");
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -74,36 +78,48 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 					+ " INNER JOIN TIPO_ESTADO_TRABAJO_REALIZADO tetr ON tr.ID_TIPO_ESTADO_TRABAJO_REALIZADO = tetr.ID_TIPO_ESTADO_TRABAJO_REALIZADO ");
 
 			boolean first = true;
-			
+
 			if(trc.getDescripcion()!=null) {
-				DAOUtils.addClause(queryString, first," (UPPER(tr.DESCRIPCION) LIKE UPPER(?)) OR (UPPER(u.NOMBRE_PERFIL) LIKE UPPER(?)) ");
+				DAOUtils.addClause(queryString, first," (UPPER(tr.DESCRIPCION) LIKE UPPER(?)) OR (UPPER(tr.TITULO) LIKE UPPER(?)) ");
 				first = false;
 			}
+
 			if(trc.getIdProvincia()!=null) {
 				DAOUtils.addClause(queryString, first," pl.ID_PROVINCIA = ? ");
 				first = false;
 			}
+
 			if(trc.getIdEspecializacion()!=null) {
 				DAOUtils.addClause(queryString, first," tre.ID_ESPECIALIZACION = ? ");
 				first = false;
 			}
+
 			if(trc.getIdProveedor()!=null) {
 				DAOUtils.addClause(queryString, first," u.ID_USUARIO = ? ");
 				first = false;
 			}
+
 			if(trc.getIdTrabajoRealizado()!=null) {
 				DAOUtils.addClause(queryString, first," tr.ID_TRABAJO_REALIZADO = ? ");
 				first = false;
 			}
-			queryString.append(" AND tetr.ID_TIPO_ESTADO_TRABAJO_REALIZADO = 1 AND u.ID_TIPO_USUARIO = 2 AND (u.ID_TIPO_ESTADO_CUENTA = 2 || 1 )  GROUP BY tr.ID_TRABAJO_REALIZADO ");
 
-			if(trc.getOrderBy()!=null) {
-				queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(trc.getOrderBy()));
+
+			if (trc.getIdTrabajoRealizado()!=null) {
+
 			} else {
-				queryString.append(" ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+
+				queryString.append(" AND tetr.ID_TIPO_ESTADO_TRABAJO_REALIZADO = 1 AND u.ID_TIPO_USUARIO = 2 AND (u.ID_TIPO_ESTADO_CUENTA = 2 || 1 )  GROUP BY tr.ID_TRABAJO_REALIZADO ");
+
+				if(trc.getOrderBy()!=null) {
+					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(trc.getOrderBy()));
+				} else {
+					queryString.append(" ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+				}
+
 			}
 
-			// Create prepared statement
+
 			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
@@ -114,24 +130,27 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // PRIMER VALOR (descripcion trabajo)
 				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // SEGUNDO VALOR (nombre perfil)
 			}
-			
+
 			if(trc.getIdProvincia()!=null) {
 				JDBCUtils.setParameter(preparedStatement, i++, trc.getIdProvincia());
 			}
-			
+
 			if (trc.getIdEspecializacion()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, trc.getIdEspecializacion());		
 			}
-			
+
 			if (trc.getIdProveedor()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, trc.getIdProveedor());		
 			}
-			
+
 			if (trc.getIdTrabajoRealizado()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, trc.getIdTrabajoRealizado());		
 			}
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			rs = preparedStatement.executeQuery();
 
 			List<TrabajoRealizadoDTO> trabajos = new ArrayList<TrabajoRealizadoDTO>();
@@ -149,10 +168,14 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			results.setData(trabajos);
 			results.setTotal(DAOUtils.getTotalRows(rs));
 
-			logger.trace("End"+results);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End"+results);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error SQL: "+results, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+results, sqle);
+			}
 			throw new DataException("Error lista: "+results, sqle);
 
 		} finally {
@@ -163,11 +186,59 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 	}
 
 
+	public void visualizaTrabajo(Connection c, Long id)
+			throws DataException {
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+id);
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		UsuarioDTO usuario = null;
+
+		try {			 
+			String sql =" UPDATE TRABAJO_REALIZADO "
+					+ "	SET NUM_VISUALIZACION = NUM_VISUALIZACION +1 "
+					+ " WHERE ID_TRABAJO_REALIZADO = ? ";
+
+
+			//create prepared statement
+			preparedStatement = c.prepareStatement(sql);
+			JDBCUtils.setParameter(preparedStatement, 1, id);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			preparedStatement.executeUpdate();
+
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End ");
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(usuario, sqle);
+			}
+			throw new DataException("Error id trabajo: "+id, sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+	}
+
 
 	@Override
-	public long create(Connection c, TrabajoRealizadoDTO trabajoRealizado) 
+	public long create(Connection c, TrabajoRealizadoDTO trabajoRealizado, List<Integer> especializaciones) 
 			throws DataException{
-		logger.trace("Begin");
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -192,7 +263,10 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdTipoEstadoTrabajoRealizado());
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdProyectoAsociado(), true);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			int insertedRows = preparedStatement.executeUpdate();
 
 			if (insertedRows==1) {
@@ -201,14 +275,25 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 					trabajoRealizado.setIdTrabajoRealizado(rs.getLong(1));
 				}
 
+				if (especializaciones!=null) {
+					
+					for (Integer idEspecializacion : especializaciones) {
+						especializacionDAO.crearEspecializacionTrabajo(c, trabajoRealizado.getIdTrabajoRealizado(), idEspecializacion);	
+					}									
+				}
+
 			} else {
 				throw new DataException(trabajoRealizado.getTitulo());
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(trabajoRealizado, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(trabajoRealizado, sqle);
+			}
 			throw new DataException(trabajoRealizado.getTitulo(), sqle);
 
 		} finally {
@@ -221,9 +306,12 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 
 
 	@Override
-	public int update(Connection c, TrabajoRealizadoDTO trabajoRealizado) 
+	public int update(Connection c, TrabajoRealizadoDTO trabajoRealizado, List<Integer> especializaciones) 
 			throws DataException, TrabajoRealizadoNotFoundException{
-		logger.trace("Begin");
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -235,11 +323,7 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			String sql =" UPDATE TRABAJO_REALIZADO "
 					+ "	SET		TITULO = ?,"
 					+ "			DESCRIPCION= ?,"
-					+ "			NUM_VISUALIZACION = ?,"
-					+ "			FECHA_CREACION = ?,"
-					+ "			ID_USUARIO_CREADOR_TRABAJO = ?,"
 					+ "			ID_POBLACION = ?, "
-					+ "			ID_TIPO_ESTADO_TRABAJO_REALIZADO = ?, "
 					+ "		ID_PROYECTO_ASOCIADO = ? "
 					+ "  WHERE ID_TRABAJO_REALIZADO = ? ";
 
@@ -250,25 +334,35 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getTitulo());
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getDescripcion());
-			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getNumVisualizaciones());
-			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getFechaCreacion());
-			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdUsuarioCreadorTrabajo());
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdPoblacion());
-			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdTipoEstadoTrabajoRealizado());
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdProyectoAsociado(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, trabajoRealizado.getIdTrabajoRealizado());
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			updatedRows = preparedStatement.executeUpdate();
 
+			if (especializaciones!=null) {
+				
+				for (Integer idEspecializacion : especializaciones) {
+					especializacionDAO.crearEspecializacionTrabajo(c, trabajoRealizado.getIdTrabajoRealizado(), idEspecializacion);	
+				}									
+			}
+			
 			if (updatedRows!=1) {
 				throw new TrabajoRealizadoNotFoundException("Trabajo Realizado: "+trabajoRealizado.getIdTrabajoRealizado());
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(trabajoRealizado, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(trabajoRealizado, sqle);
+			}
 			throw new DataException("Trabajo Realizado: "+trabajoRealizado.getIdTrabajoRealizado()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -284,7 +378,10 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 	@Override
 	public int updateStatus(Connection c, Long idTrabajoRealizado, Integer idEstadoTrabajoRealizado) 
 			throws DataException, TrabajoRealizadoNotFoundException{
-		logger.trace("Begin");
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -305,18 +402,24 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			JDBCUtils.setParameter(preparedStatement, i++, idEstadoTrabajoRealizado);
 			JDBCUtils.setParameter(preparedStatement, i++, idTrabajoRealizado);
 
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 
-			logger.trace(preparedStatement);
 			updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows!=1) {
 				throw new TrabajoRealizadoNotFoundException("Trabajo Realizado: "+idTrabajoRealizado);
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(idTrabajoRealizado, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(idTrabajoRealizado, sqle);
+			}
 			throw new DataException("Trabajo Realizado: "+idTrabajoRealizado+": "+sqle.getMessage() ,sqle);
 
 		} finally {

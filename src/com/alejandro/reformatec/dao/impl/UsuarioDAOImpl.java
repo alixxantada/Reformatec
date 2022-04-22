@@ -47,12 +47,89 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	}
 
 
+	private final String QUERY_BASE_FIND = " SELECT u.ID_USUARIO, u.NOMBRE, u.APELLIDO1, u.APELLIDO2, u.NIF, u.TELEFONO1, u.TELEFONO2, u.EMAIL, u.NOMBRE_PERFIL, "
+			+ " u.NOMBRE_CALLE, u.COD_POSTAL, u.ENCRYPTED_PASSWORD, u.ID_POBLACION_USUARIO, pl.NOMBRE, pl.ID_PROVINCIA, "
+			+ " pr.NOMBRE, u.ID_TIPO_USUARIO, tu.NOMBRE, u.ID_TIPO_ESTADO_CUENTA, tec.NOMBRE , AVG(v.NOTA_VALORACION), COUNT(DISTINCT(v.ID_VALORACION)), "
+			+ " u.NUM_VISUALIZACION, u.DESCRIPCION, u.DIRECCION_WEB, u.CIF, u.SERVICIO24, u.PROVEEDOR_VERIFICADO "
+			+ " FROM USUARIO u "
+			+ " LEFT OUTER JOIN USUARIO_FAVORITO uf ON u.ID_USUARIO = uf.ID_USUARIO_SEGUIDO "
+			+ " LEFT OUTER JOIN USUARIO_ESPECIALIZACION ue ON u.ID_USUARIO = ue.ID_USUARIO "
+			+ " LEFT OUTER JOIN ESPECIALIZACION e ON ue.ID_ESPECIALIZACION = e.ID_ESPECIALIZACION "
+			+ " LEFT OUTER JOIN VALORACION v ON u.ID_USUARIO = v.ID_PROVEEDOR_VALORADO "
+			+ " INNER JOIN TIPO_ESTADO_CUENTA tec ON u.ID_TIPO_ESTADO_CUENTA= tec.ID_TIPO_ESTADO_CUENTA "
+			+ " INNER JOIN TIPO_USUARIO tu ON u.ID_TIPO_USUARIO= tu.ID_TIPO_USUARIO "
+			+ " INNER JOIN POBLACION pl ON u.ID_POBLACION_USUARIO= pl.ID_POBLACION "
+			+ " INNER JOIN PROVINCIA pr ON pl.ID_PROVINCIA = pr.ID_PROVINCIA ";
+
+	@Override
+	public UsuarioDTO findByEmail(Connection c, UsuarioCriteria uc)
+			throws DataException{
+		logger.trace("Begin");
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+		UsuarioDTO usuario = null;
+
+		try {			 
+
+			StringBuilder queryString = new StringBuilder(QUERY_BASE_FIND);
+
+			boolean first = true;
+
+			if(uc.getEmailActivo()!=null) {
+				DAOUtils.addClause(queryString, first," (UPPER(u.EMAIL) LIKE UPPER(?)) AND u.ID_TIPO_ESTADO_CUENTA = 2 ");
+				first = false;
+			}
+
+			if(uc.getEmailExistente()!=null) {
+				DAOUtils.addClause(queryString, first," (UPPER(u.EMAIL) LIKE UPPER(?)) ");
+				first = false;
+			}
+
+
+			// Create prepared statement
+			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+
+			if(uc.getEmailActivo()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getEmailActivo());
+			}
+
+			if(uc.getEmailExistente()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getEmailExistente());
+			}
+
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			rs = preparedStatement.executeQuery();
+
+			if (rs.next()) {
+				usuario = loadNext(c, rs);
+			}
+
+			logger.trace("End");
+		} catch (SQLException sqle) {
+			logger.error(usuario, sqle);
+			throw new DataException(sqle);
+		} finally { 
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+		return usuario;
+	}
 
 
 	@Override
-	public Results<UsuarioDTO> findByCriteria(Connection c, UsuarioCriteria pc, int startIndex, int pageSize)
+	public Results<UsuarioDTO> findByCriteria(Connection c, UsuarioCriteria uc, int startIndex, int pageSize)
 			throws DataException{
-		logger.trace("Begin "+pc);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+uc);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -61,130 +138,108 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 		try {
 
-			StringBuilder queryString = new StringBuilder("SELECT u.ID_USUARIO, u.NOMBRE, u.APELLIDO1, u.APELLIDO2, u.NIF, u.TELEFONO1, u.TELEFONO2, u.EMAIL, u.NOMBRE_PERFIL, "
-					+ " u.NOMBRE_CALLE, u.COD_POSTAL, u.ENCRYPTED_PASSWORD, u.ID_POBLACION_USUARIO, pl.NOMBRE, pl.ID_PROVINCIA, "
-					+ " pr.NOMBRE, u.ID_TIPO_USUARIO, tu.NOMBRE, u.ID_TIPO_ESTADO_CUENTA, tec.NOMBRE , AVG(v.NOTA_VALORACION), COUNT(DISTINCT(v.ID_VALORACION)), "
-					+ " u.NUM_VISUALIZACION, u.DESCRIPCION, u.DIRECCION_WEB, u.CIF, u.SERVICIO24, u.EXPERTO_NEGOCIO, u.PROVEEDOR_VERIFICADO, "
-					+ " e.ID_ESPECIALIZACION, e.NOMBRE "
-					+ " FROM USUARIO u "
-					+ " LEFT OUTER JOIN USUARIO_ESPECIALIZACION ue ON u.ID_USUARIO = ue.ID_USUARIO "
-					+ " LEFT OUTER JOIN ESPECIALIZACION e ON ue.ID_ESPECIALIZACION = e.ID_ESPECIALIZACION "
-					+ " LEFT OUTER JOIN VALORACION v ON u.ID_USUARIO = v.ID_PROVEEDOR_VALORADO "
-					+ " INNER JOIN TIPO_ESTADO_CUENTA tec ON u.ID_TIPO_ESTADO_CUENTA= tec.ID_TIPO_ESTADO_CUENTA "
-					+ " INNER JOIN TIPO_USUARIO tu ON u.ID_TIPO_USUARIO= tu.ID_TIPO_USUARIO "
-					+ " INNER JOIN POBLACION pl ON u.ID_POBLACION_USUARIO= pl.ID_POBLACION "
-					+ " INNER JOIN PROVINCIA pr ON pl.ID_PROVINCIA = pr.ID_PROVINCIA ");
+			StringBuilder queryString = new StringBuilder(QUERY_BASE_FIND);
 
 			boolean first = true;
 
-			if(pc.getIdUsuario()!=null) {
+			if(uc.getIdUsuario()!=null) {
 				DAOUtils.addClause(queryString, first," u.ID_USUARIO = ? ");
 				first = false;
 			}
 
-			if(pc.getEmail()!=null) {
-				DAOUtils.addClause(queryString, first," (( UPPER(u.EMAIL) LIKE UPPER(?) ) AND ( u.ID_TIPO_ESTADO_CUENTA = 2 )) ");
+			if(uc.getIdUsuarioFavorito()!=null) {
+				DAOUtils.addClause(queryString, first," uf.ID_USUARIO_SIGUE = ? AND u.ID_TIPO_ESTADO_CUENTA = 2 GROUP BY uf.ID_USUARIO_SEGUIDO ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
 				first = false;
 			}
 
-			if(pc.getIdUsuarioFavorito()!=null) {
-				DAOUtils.addClause(queryString, first," ((uf.ID_USUARIO_SIGUE = ?) AND (u.ID_TIPO_ESTADO_CUENTA = 2))  ");
-				first = false;
-			}
-			if(pc.getDescripcion()!=null) {
+			if(uc.getDescripcion()!=null) {
 				DAOUtils.addClause(queryString, first," (UPPER(u.NOMBRE_PERFIL) LIKE UPPER(?)) OR (UPPER(u.DESCRIPCION) LIKE UPPER(?)) ");
 				first = false;
 			}
 
-			if(pc.getIdProvincia()!=null){
+			if(uc.getIdProvincia()!=null){
 				DAOUtils.addClause(queryString, first," pr.ID_PROVINCIA = ? ");
 				first = false;
 			}
 
-			if(pc.getIdPoblacion()!=null) {
+			if(uc.getIdPoblacion()!=null) {
 				DAOUtils.addClause(queryString, first," pl.ID_POBLACION = ? ");
 				first = false;
 			}
-			if(pc.getExpertoNegocio()!=null) {
-				DAOUtils.addClause(queryString, first," u.EXPERTO_NEGOCIO = ? ");
-				first = false;
-			}
 
-			if(pc.getServicio24()!=null) {
+			if(uc.getServicio24()!=null) {
 				DAOUtils.addClause(queryString, first," u.SERVICIO24 = ? ");
 				first = false;
 			}
 
-			if(pc.getProveedorVerificado()!=null) {
+			if(uc.getProveedorVerificado()!=null) {
 				DAOUtils.addClause(queryString, first," u.PROVEEDOR_VERIFICADO = ? ");
 				first = false;
 			}
 
-			if(pc.getIdEspecializacion()!=null) {
+			if(uc.getIdEspecializacion()!=null) {
 				DAOUtils.addClause(queryString, first," ue.ID_ESPECIALIZACION = ? ");
 				first = false;
 			}
 
 
-			DAOUtils.addClause(queryString, first, " u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 GROUP BY u.ID_USUARIO ");
+			if (uc.getIdUsuario()==null && uc.getIdUsuarioFavorito()==null) {
 
-			if(pc.getOrderBy()!=null) {
-				queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(pc.getOrderBy()));
-			} else {
-				queryString.append(" ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+				DAOUtils.addClause(queryString, first, " u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 GROUP BY u.ID_USUARIO ");
+
+				if(uc.getOrderBy()!=null) {
+					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(uc.getOrderBy()));
+				} else {
+					queryString.append(" ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+				}
 			}
+
 
 			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
 
-			if(pc.getIdUsuario()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdUsuario());
+			if(uc.getIdUsuario()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdUsuario());
 			}
 
-			if(pc.getEmail()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getEmail());
+			if(uc.getIdUsuarioFavorito()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdUsuarioFavorito());
 			}
 
-			if(pc.getIdUsuarioFavorito()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdUsuarioFavorito());
-			}
-
-			if(pc.getDescripcion()!=null) {
+			if(uc.getDescripcion()!=null) {
 				StringBuilder a = new StringBuilder("%");
-				a.append(pc.getDescripcion()).append("%");
+				a.append(uc.getDescripcion()).append("%");
 				// Lo mete en el primer interrogante
 				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // descripcion
 				// Lo mete en el segundo interrogante
 				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // nombre_perfil
 			}			
 
-			if(pc.getIdProvincia()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdProvincia());
+			if(uc.getIdProvincia()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdProvincia());
 			}
 
-			if(pc.getIdPoblacion()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdPoblacion());
+			if(uc.getIdPoblacion()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdPoblacion());
 			}
 
-			if(pc.getExpertoNegocio()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getExpertoNegocio());
+			if(uc.getServicio24()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getServicio24());
 			}
 
-			if(pc.getServicio24()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getServicio24());
-			}
-
-			if(pc.getProveedorVerificado()!=null) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getProveedorVerificado());
+			if(uc.getProveedorVerificado()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getProveedorVerificado());
 			}	
 
-			if (pc.getIdEspecializacion()!=null ) {
-				JDBCUtils.setParameter(preparedStatement, i++, pc.getIdEspecializacion());		
+			if (uc.getIdEspecializacion()!=null ) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdEspecializacion());		
 			}
 
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 
-			logger.trace(preparedStatement);
 			rs = preparedStatement.executeQuery();
 
 			List<UsuarioDTO> usuarios = new ArrayList<UsuarioDTO>();
@@ -195,18 +250,24 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 				// empezamos recorriendolo ya 1 vez para sacar el primer resultado! luego si hay mas lo repetimos! de lo contrario se salta el primero
 				do { 
 					usuario = loadNext(c, rs);
-					usuarios.add(usuario);
-					resultsLoaded++;
+					if (usuario.getIdUsuario()!=null) {
+						usuarios.add(usuario);
+						resultsLoaded++;
+					}
 				} while (resultsLoaded<pageSize && rs.next());				
 			}
 
 			results.setData(usuarios);
 			results.setTotal(DAOUtils.getTotalRows(rs));
 
-			logger.trace("End "+results);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+results);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error SQL: "+results, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+results, sqle);
+			}
 			throw new DataException("Error lista: "+results, sqle);
 
 		} finally {
@@ -221,7 +282,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public void anhadirFavorito(Connection c , Long idCliente, Long idProveedor)
 			throws DataException{
-		logger.trace("Begin id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -239,13 +303,20 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, idCliente);
 			JDBCUtils.setParameter(preparedStatement, i++, idProveedor);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			preparedStatement.executeUpdate();
 
-			logger.trace("End id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+sqle);
+			if (logger.isTraceEnabled()) {
+				logger.error("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+sqle);
+			}
 			throw new DataException("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -259,7 +330,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public void deleteFavorito(Connection c, Long idCliente, Long idProveedor)
 			throws DataException {
-		logger.trace("Begin id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -277,13 +351,20 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, idCliente);
 			JDBCUtils.setParameter(preparedStatement, i++, idProveedor);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			preparedStatement.executeUpdate();
 
-			logger.trace("End id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End id Cliente: "+idCliente+", Id Proveedor: "+idProveedor);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+sqle);
+			if (logger.isTraceEnabled()) {
+				logger.error("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+sqle);
+			}
 			throw new DataException("Error id Cliente: "+idCliente+", id Proveedor: "+idProveedor+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -292,13 +373,15 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		}
 	}
 
-	
-	
+
+
 	@Override
 	public Boolean compruebaFavorito(Connection c, Long idCliente, Long idProveedor) 
 			throws DataException{
 
-		logger.trace("Begin id cliente: "+idCliente+", id Proveedor: "+idProveedor);
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin id cliente: "+idCliente+", id Proveedor: "+idProveedor);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -309,7 +392,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			String sql =" SELECT u.ID_USUARIO, u.NOMBRE, u.APELLIDO1, u.APELLIDO2, u.NIF, u.TELEFONO1, u.TELEFONO2, u.EMAIL, u.NOMBRE_PERFIL, "
 					+ " u.NOMBRE_CALLE, u.COD_POSTAL, u.ENCRYPTED_PASSWORD, u.ID_POBLACION_USUARIO, pl.NOMBRE, pl.ID_PROVINCIA, "
 					+ " pr.NOMBRE, u.ID_TIPO_USUARIO, tu.NOMBRE, u.ID_TIPO_ESTADO_CUENTA, tec.NOMBRE , AVG(v.NOTA_VALORACION), COUNT(DISTINCT(v.ID_VALORACION)), "
-					+ " u.NUM_VISUALIZACION, u.DESCRIPCION, u.DIRECCION_WEB, u.CIF, u.SERVICIO24, u.EXPERTO_NEGOCIO, u.PROVEEDOR_VERIFICADO, "
+					+ " u.NUM_VISUALIZACION, u.DESCRIPCION, u.DIRECCION_WEB, u.CIF, u.SERVICIO24, u.PROVEEDOR_VERIFICADO, "
 					+ " e.ID_ESPECIALIZACION, e.NOMBRE "
 					+ " FROM USUARIO_FAVORITO uf "
 					+ " INNER JOIN USUARIO u ON u.ID_USUARIO = uf.ID_USUARIO_SEGUIDO "  
@@ -329,7 +412,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, 1, idCliente);
 			JDBCUtils.setParameter(preparedStatement, 2, idProveedor);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			rs = preparedStatement.executeQuery();
 
 			if (rs.next()) {
@@ -337,7 +423,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			}
 
 		}catch (SQLException sqle) {			
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException("Error favorito: "+favorito, sqle);
 
 		} finally {
@@ -350,9 +438,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 
 
-	public void visualiza(Connection c, Long id)
-			throws DataException, UserNotFoundException{
-		logger.trace("Begin "+id);
+	public void visualizaUsuario(Connection c, Long id)
+			throws DataException {
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+id);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -369,14 +460,21 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			preparedStatement = c.prepareStatement(sql);
 			JDBCUtils.setParameter(preparedStatement, 1, id);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			preparedStatement.executeUpdate();
 
 
-			logger.trace("End ");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End ");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(usuario, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(usuario, sqle);
+			}
 			throw new DataException("Error id usuario: "+id, sqle);
 
 		} finally {
@@ -389,9 +487,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 
 	@Override
-	public long create(Connection c, UsuarioDTO usuario) 
+	public long create(Connection c, UsuarioDTO usuario, List<Integer> especializaciones) 
 			throws DataException {
-		logger.trace("Begin "+usuario);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+usuario);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -400,11 +501,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 			String sql = " INSERT INTO USUARIO(NOMBRE, APELLIDO1, APELLIDO2, NIF, TELEFONO1, TELEFONO2, EMAIL, NOMBRE_PERFIL, "
 					+ " NOMBRE_CALLE, COD_POSTAL, ENCRYPTED_PASSWORD, ID_POBLACION_USUARIO, ID_TIPO_USUARIO, ID_TIPO_ESTADO_CUENTA, CIF, "
-					+ " DESCRIPCION, DIRECCION_WEB, SERVICIO24, EXPERTO_NEGOCIO, PROVEEDOR_VERIFICADO) "
-					+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
+					+ " DESCRIPCION, DIRECCION_WEB, SERVICIO24, PROVEEDOR_VERIFICADO, NUM_VISUALIZACION, COD_REGISTRO) "
+					+ " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ";
 
-			//create prepared statement
-			logger.trace(preparedStatement);
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			int i  = 1;
@@ -423,31 +522,44 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdPoblacion());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdTipoUsuario());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdTipoEstadoCuenta());
-			// poniendo true indicamos que puede ser null(JDBCutils)
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCif(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDescripcion(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDireccionWeb(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getServicio24(), true);
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getExpertoNegocio(), true);
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(), true); 
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(), true);
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNumeroVisualizaciones(), true);
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCodigoRegistro(), true); 
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			int insertedRows = preparedStatement.executeUpdate();
-			// si inserta una fila, en la primera posicion genera clave AI con el metodo generatedkeys
 			if (insertedRows==1) {
 				rs = preparedStatement.getGeneratedKeys();
 				if(rs.next()) {
 					usuario.setIdUsuario(rs.getLong(1));
 				}
 
+				if (especializaciones!=null) {
+
+					for (Integer idEspecializacion : especializaciones) {
+						especializacionDAO.crearEspecializacionUsuario(c, usuario.getIdUsuario(), idEspecializacion);	
+					}									
+				}
+
 			} else {
 				throw new DataException(usuario.getNombrePerfil());
 			}
 
-			logger.trace("End "+usuario);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+usuario);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error usuario: "+usuario, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error usuario: "+usuario, sqle);
+			}
 			throw new DataException("User: "+usuario.getIdUsuario()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -461,9 +573,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 
 	@Override
-	public int update(Connection c, UsuarioDTO usuario) 
+	public int update(Connection c, UsuarioDTO usuario, List<Integer> especializaciones) 
 			throws DataException, UserNotFoundException {
-		logger.trace("Begin "+usuario);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+usuario);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -478,15 +593,15 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 					+ "			NOMBRE_PERFIL = ?,"
 					+ "			NOMBRE_CALLE = ?,"
 					+ "			COD_POSTAL = ?,"
+					+ "			CIF = ?,"
 					+ "			ENCRYPTED_PASSWORD = ?,"
 					+ "			ID_POBLACION_USUARIO = ?,"
 					+ "			DESCRIPCION = ?,"
 					+ "			DIRECCION_WEB = ?,"
-					+ "			SERVICIO24 = ? ,"
-					+ "			EXPERTO_NEGOCIO = ? "
+					+ "			SERVICIO24 = ?, "
+					+ "			PROVEEDOR_VERIFICADO = ? "
 					+ "  WHERE ID_USUARIO = ? ";	
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql);
 
 			int i  = 1;
@@ -496,25 +611,41 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNombrePerfil());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNombreCalle());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCodigoPostal());
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCif(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getEncryptedPassword());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdPoblacion());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDescripcion(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDireccionWeb(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getServicio24(),true);
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getExpertoNegocio(),true);
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdUsuario());
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			updatedRows = preparedStatement.executeUpdate();
 
+			if (especializaciones!=null) {
+
+				for (Integer idEspecializacion : especializaciones) {
+					especializacionDAO.crearEspecializacionUsuario(c, usuario.getIdUsuario(), idEspecializacion);	
+				}									
+			}
+			
+			
 			if (updatedRows!=1) {
 				throw new UserNotFoundException("User: "+usuario.getIdUsuario());
 			}
 
-			logger.trace("End "+usuario);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+usuario);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error usuario: "+usuario, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error usuario: "+usuario, sqle);
+			}
 			throw new DataException("User: "+usuario.getIdUsuario()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -530,7 +661,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public int updateStatus(Connection c, Long idUsuario, Integer idEstadoCuenta) 
 			throws DataException, UserNotFoundException{
-		logger.trace("Begin "+idUsuario, idEstadoCuenta);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+idUsuario, idEstadoCuenta);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -543,7 +677,6 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 					+ "	SET ID_TIPO_ESTADO_CUENTA = ? "
 					+ " WHERE ID_USUARIO = ? ";
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql);
 
 			int i  = 1;
@@ -551,17 +684,24 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, idEstadoCuenta);
 			JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
 			updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows!=1) {
 				throw new UserNotFoundException("User: "+idUsuario);
 			}
 
-			logger.trace("End "+idUsuario, idEstadoCuenta);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+idUsuario, idEstadoCuenta);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error id Usuario: "+idUsuario, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error id Usuario: "+idUsuario, sqle);
+			}
 			throw new DataException("User: "+idUsuario+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -577,7 +717,10 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	@Override
 	public long deleteById(Connection c, Long idUsuario) 
 			throws DataException, UserNotFoundException {
-		logger.trace("Begin "+idUsuario);
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+idUsuario);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -593,17 +736,23 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			preparedStatement = c.prepareStatement(sql);
 			JDBCUtils.setParameter(preparedStatement, idUsuario);
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
 			deleteRows = preparedStatement.executeUpdate();
 
 			if (deleteRows!=1) {
 				throw new UserNotFoundException("User: "+idUsuario+" cant delete");
 			}
 
-			logger.trace("End "+idUsuario);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+idUsuario);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error("Error id Usuario: "+idUsuario, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error("Error id Usuario: "+idUsuario, sqle);
+			}
 			throw new DataException("User: "+idUsuario+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -663,10 +812,6 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			i++;
 		}
 
-		Object expertoNegocio = rs.getObject(i);
-		if (expertoNegocio!=null) {
-			usuario.setExpertoNegocio(rs.getBoolean(i++));
-		}
 
 		Object proveedorVerificado = rs.getObject(i);
 		if(proveedorVerificado!=null) {

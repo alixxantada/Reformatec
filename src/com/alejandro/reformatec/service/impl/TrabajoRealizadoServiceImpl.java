@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.mail.EmailException;
 import org.apache.logging.log4j.LogManager;
@@ -20,6 +21,7 @@ import com.alejandro.reformatec.dao.util.JDBCUtils;
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.MailException;
 import com.alejandro.reformatec.exception.ServiceException;
+import com.alejandro.reformatec.model.EstadoTrabajoRealizado;
 import com.alejandro.reformatec.model.Results;
 import com.alejandro.reformatec.model.TrabajoRealizadoCriteria;
 import com.alejandro.reformatec.model.TrabajoRealizadoDTO;
@@ -49,7 +51,8 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 	@Override
 	public Results<TrabajoRealizadoDTO> findByCriteria(TrabajoRealizadoCriteria trc, int startIndex, int pageSize)
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		Results<TrabajoRealizadoDTO> results = new Results<TrabajoRealizadoDTO>();
@@ -66,10 +69,12 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 			// fin de la transacción
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {
@@ -80,10 +85,47 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 
 
 
+
 	@Override
-	public long create(TrabajoRealizadoDTO tr) 
+	public void visualizaTrabajo(Long id) 
+			throws DataException, ServiceException {
+
+		logger.traceEntry();
+
+		Connection c = null;
+		boolean commitOrRollback = false;
+		UsuarioDTO usuario = null;
+
+		try {
+			c = ConnectionManager.getConnection();
+
+			// inicio de la transaccion, es como un beggin
+			c.setAutoCommit(false);
+
+			trabajoRealizadoDAO.visualizaTrabajo(c, id);
+
+			// fin de la transaccion a continuacion
+			commitOrRollback = true;
+
+			logger.traceExit();
+
+		} catch (SQLException sqle) {
+			if (logger.isErrorEnabled()) {
+				logger.error(usuario, sqle);
+			}
+			throw new DataException(sqle);		
+
+		} finally {
+			JDBCUtils.closeConnection(c, commitOrRollback);
+		}
+	}
+
+
+	@Override
+	public long create(TrabajoRealizadoDTO tr, List<Integer> especializaciones) 
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		boolean commitOrRollback = false;
@@ -92,13 +134,14 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 		UsuarioCriteria uc = new UsuarioCriteria();
 		//necesario para poder tener el id del trabajo que creamos y ponerle las especializaciones
 		Long trabajoId=null;
+
 		try  {
 			c = ConnectionManager.getConnection();								
 
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
 
-			// TODO Aqui es donde se hace set de la hora que se crea (solo pone el dia)
+			// Aqui es donde se hace set de la hora que se crea (solo pone el dia en formato Date)
 			Calendar cal=Calendar.getInstance();
 			Date date=cal.getTime();
 			tr.setFechaCreacion(date);
@@ -109,16 +152,16 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 			String descripcion = tr.getDescripcion().toLowerCase();
 			tr.setDescripcion(descripcion);
 
-			tr.setIdTipoEstadoTrabajoRealizado(1);
+			tr.setIdTipoEstadoTrabajoRealizado(EstadoTrabajoRealizado.TRABAJO_REALIZADO_ACTIVO);
 			tr.setNumVisualizaciones(0L);
 
-			trabajoId=trabajoRealizadoDAO.create(c, tr);
-
-			if(tr.getIdsEspecializaciones()!=null) {
-
-				especializacionDAO.crearEspecializacionUsuario(c,trabajoId,tr.getIdsEspecializaciones());
+			if (logger.isTraceEnabled()) {
+				logger.trace("Service envia trabajo a dao: "+tr+", idsEspecializaciones; "+especializaciones);
 			}
-			
+
+			trabajoId=trabajoRealizadoDAO.create(c, tr, especializaciones);
+
+
 			int startIndex = 1;
 			int pageSize = 1;
 
@@ -126,7 +169,7 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 			usuarioCreador = usuarioDAO.findByCriteria(c, uc, startIndex, pageSize );
 
 			for(UsuarioDTO u : usuarioCreador.getData()) {
-				
+
 				String msg = new StringBuilder("Hola ")
 						.append(u.getNombrePerfil())
 						.append("!!, Acabas de crear el trabajo ")
@@ -143,33 +186,38 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 						// le paso el mail que tengo en el objeto usuario que creo el proyecto
 						u.getEmail());
 			}
-			
+
 
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(tr,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(tr,sqle);
+			}
 			throw new DataException(sqle);
 
 		} catch (EmailException ee) {
-			logger.error(tr, ee);
+			if (logger.isErrorEnabled()) {
+				logger.error(tr, ee);
+			}
 			throw new MailException(ee);
 
 		} finally {
 			JDBCUtils.closeConnection(c, commitOrRollback);
 		}
-		return tr.getIdTrabajoRealizado();
+		return trabajoId;
 	}
 
 
 
 	@Override
-	public void update(TrabajoRealizadoDTO tr) 
+	public void update(TrabajoRealizadoDTO tr, List<Integer> especializaciones) 
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		boolean commitOrRollback = false;
@@ -180,16 +228,21 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
 
-
-			trabajoRealizadoDAO.update(c, tr);
+			//TODO Deberia meter nuevo dato en bbdd fecha modificacion.
+			
+			//Primero le borro las especializaciones que pueda tener antes del update
+			especializacionDAO.deleteEspecializacionTrabajo(c, tr.getIdTrabajoRealizado());
+			trabajoRealizadoDAO.update(c, tr, especializaciones);
 
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(tr,sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(tr,sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {
@@ -202,7 +255,8 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 	@Override
 	public void updateStatus(Long idTrabajoRealizado, Integer idEstadoTrabajoRealizado) 
 			throws DataException, ServiceException{
-		logger.trace("Begin");
+
+		logger.traceEntry();
 
 		Connection c = null;
 		boolean commitOrRollback = false;
@@ -218,10 +272,12 @@ public class TrabajoRealizadoServiceImpl implements TrabajoRealizadoService {
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
-			logger.trace("End");
+			logger.traceExit();
 
 		} catch (SQLException sqle) {
-			logger.error(sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {

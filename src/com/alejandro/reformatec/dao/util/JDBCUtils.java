@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.Date;
 
@@ -52,9 +53,8 @@ public class JDBCUtils {
 			throws SQLException {
 		setParameter(ps,  parameterIndex, value, false);
 	}
-
-
-
+	
+	
 
 	// si se pone false es que no puede tener el valor null y si se pone true es que se le puede pasar un valor "null"
 
@@ -118,7 +118,8 @@ public class JDBCUtils {
 			Date value, boolean nullable) 
 					throws SQLException {
 		if (value!=null) {
-			ps.setDate(parameterIndex, new java.sql.Date(value.getTime()));		
+			// ps.setDate(parameterIndex, new java.sql.Date(value.getTime()));
+			ps.setTimestamp(parameterIndex, new Timestamp(value.getTime()));
 		} else {
 			if (nullable) {
 				ps.setNull(parameterIndex, Types.DATE);

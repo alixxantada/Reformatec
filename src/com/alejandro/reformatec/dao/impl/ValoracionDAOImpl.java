@@ -34,7 +34,10 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 	@Override
 	public Results<ValoracionDTO> findByCriteria(Connection c, ValoracionCriteria vc, int startIndex, int pageSize)
 			throws DataException {
-		logger.trace("Begin");
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -79,7 +82,6 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 
 			queryString.append(" ORDER BY v.FECHA_HORA_CREACION DESC ");
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
 			int i = 1;
@@ -104,7 +106,10 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 				JDBCUtils.setParameter(preparedStatement, i++, vc.getIdUsuarioValoraTrabajo());
 			}
 
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			rs = preparedStatement.executeQuery();
 
 			List<ValoracionDTO> valoracioness = new ArrayList<ValoracionDTO>();
@@ -122,10 +127,14 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 			results.setData(valoracioness);
 			results.setTotal(DAOUtils.getTotalRows(rs));
 
-			logger.trace("End valoraciones: "+results);
+			if (logger.isTraceEnabled()) {
+				logger.trace("End valoraciones: "+results);
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(results, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(results, sqle);
+			}
 			throw new DataException(sqle);
 
 		} finally {
@@ -141,7 +150,10 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 	@Override
 	public long create(Connection c, ValoracionDTO valoracion)
 			throws DataException{
-		logger.trace("Begin creando valoracion: "+valoracion);
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin creando valoracion: "+valoracion);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -152,7 +164,6 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 					+ " ID_TIPO_ESTADO_VALORACION, ID_PROVEEDOR_VALORADO, ID_TRABAJO_REALIZADO_VALORADO) "
 					+ " VALUES (?,?,?,?,?,?,?,?) ";
 
-			//create prepared statement
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			int i  = 1;
@@ -166,8 +177,10 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 			JDBCUtils.setParameter(preparedStatement, i++, valoracion.getIdProveedorValorado(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, valoracion.getIdTrabajoRealizadoValorado(), true);
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			int insertedRows = preparedStatement.executeUpdate();
 
 			if (insertedRows==1) {
@@ -180,10 +193,14 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 				throw new DataException(valoracion.getTitulo());
 			}
 
-			logger.trace("End valoracion: "+valoracion+" creada");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End valoracion: "+valoracion+" creada");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(valoracion, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(valoracion, sqle);
+			}
 			throw new DataException("Valoración : "+valoracion.getIdValoracion()+": "+sqle.getMessage() ,sqle);
 
 		} finally {
@@ -199,7 +216,10 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 	@Override
 	public int updateStatus(Connection c, Long idValoracion, Integer idEstadoValoracion) 
 			throws DataException, ValoracionNotFoundException{
-		logger.trace("Begin id valoracion: "+idValoracion);
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin id valoracion: "+idValoracion);
+		}
 
 		PreparedStatement preparedStatement = null;
 		ResultSet rs = null;
@@ -220,18 +240,24 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 			JDBCUtils.setParameter(preparedStatement, i++, idEstadoValoracion);
 			JDBCUtils.setParameter(preparedStatement, i++, idValoracion);
 
-
-			logger.trace(preparedStatement);
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
 			updatedRows = preparedStatement.executeUpdate();
 
 			if (updatedRows!=1) {
 				throw new ValoracionNotFoundException("Valoracion: "+idValoracion);
 			}
 
-			logger.trace("End");
+			if (logger.isTraceEnabled()) {
+				logger.trace("End");
+			}
 
 		} catch (SQLException sqle) {			
-			logger.error(idValoracion, sqle);
+			if (logger.isErrorEnabled()) {
+				logger.error(idValoracion, sqle);
+			}
 			throw new DataException("Valoracion: "+idValoracion+": "+sqle.getMessage() ,sqle);
 
 		} finally {

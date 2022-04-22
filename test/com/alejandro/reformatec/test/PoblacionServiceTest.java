@@ -7,6 +7,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.ServiceException;
+import com.alejandro.reformatec.model.PoblacionCriteria;
 import com.alejandro.reformatec.model.PoblacionDTO;
 import com.alejandro.reformatec.service.PoblacionService;
 import com.alejandro.reformatec.service.impl.PoblacionServiceImpl;
@@ -16,23 +17,23 @@ public class PoblacionServiceTest {
 	private static Logger logger = LogManager.getLogger(PoblacionServiceTest.class);
 
 	private PoblacionService poblacionservice = null;
-
+	private PoblacionCriteria pc = new PoblacionCriteria();
+	
 	public PoblacionServiceTest() {
 		poblacionservice = new PoblacionServiceImpl();
 	}
-
-
 
 	
 
 	public void testfindByCriteria() {
 		logger.trace("Begin...");	
 		/////////////////////////////////
-		Integer idProvincia = 1;
+		pc.setIdPoblacion(null);
+		pc.setIdProvincia(null);
 		/////////////////////////////////
 		try {
 
-			List<PoblacionDTO> results = poblacionservice.findByCriteria(idProvincia);
+			List<PoblacionDTO> results = poblacionservice.findByCriteria(pc);
 			logger.info("Found "+results.size());
 			for (PoblacionDTO p: results) {
 				logger.info(p);
@@ -40,14 +41,11 @@ public class PoblacionServiceTest {
 
 			logger.trace("End!");
 		} catch(DataException de) {
-			logger.error(idProvincia, de);
+			logger.error(pc, de);
 		}catch (ServiceException se) {
-			logger.error(idProvincia, se);
+			logger.error(pc, se);
 		}
 	}
-
-
-
 
 
 

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,9 +16,8 @@ import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.MailException;
 import com.alejandro.reformatec.exception.ServiceException;
 import com.alejandro.reformatec.exception.UserAlreadyExistsException;
-import com.alejandro.reformatec.exception.UserNotFoundException;
-import com.alejandro.reformatec.model.UsuarioCriteria;
 import com.alejandro.reformatec.model.Results;
+import com.alejandro.reformatec.model.UsuarioCriteria;
 import com.alejandro.reformatec.model.UsuarioDTO;
 import com.alejandro.reformatec.service.UsuarioService;
 import com.alejandro.reformatec.service.impl.UsuarioServiceImpl;
@@ -43,20 +43,20 @@ public class UsuarioServiceTest {
 		logger.trace("Begin...");
 
 		////////////////////////////////////////////////////////
-		uc.setDescripcion("omartinez");
+		uc.setDescripcion(null);
 		uc.setIdProvincia(null);
-		uc.setExpertoNegocio(null);
-		uc.setServicio24(true);
+		uc.setServicio24(null);
 		uc.setProveedorVerificado(null);
 		uc.setIdEspecializacion(null);
 		uc.setOrderBy(null);
-		uc.setEmail(null);
+		uc.setEmailActivo(null);
+		uc.setEmailExistente(null);
 		uc.setIdUsuario(null);
 		uc.setIdUsuarioFavorito(null);
 		uc.setIdPoblacion(null);
 
 		int startIndex = 1;
-		int pageSize = 3;
+		int pageSize = 5;
 		///////////////////////////////////////////////////
 		// OrderBy opcion VAL -  ORDER BY AVG(v.NOTA_VALORACION) DESC)
 		// OrderBy opcion NV -  ORDER BY u.NUM_VISUALIZACION DESC
@@ -65,9 +65,18 @@ public class UsuarioServiceTest {
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
 			while(startIndex<results.getTotal()) {
 				startIndex = startIndex+results.getData().size();
-			}			
-			logger.trace("Total resultados: "+results.getTotal());
-			logger.trace("Resultados: "+results.getData());
+			}
+			if(results.getData()!=null) {
+				logger.trace("Total resultados: "+results.getTotal());
+				logger.trace("Resultados: "+results.getData());
+				for (UsuarioDTO u : results.getData()) {
+					logger.trace(" usuario: "+u);
+					logger.trace("Nombre Perfil usuario: "+u.getNombrePerfil());
+				}
+			}else {
+				logger.trace("Sin resultados");
+			}
+
 			logger.trace("End!");
 		} catch(DataException de) {
 			logger.error(uc, de);
@@ -75,22 +84,51 @@ public class UsuarioServiceTest {
 			logger.error(uc, se);
 		}
 	}
-	
 
 
-	
+	public void testFindByEmail() {
+		logger.trace("Begin...");
+
+		////////////////////////////////////////////////////////
+		uc.setEmailActivo(null);
+		uc.setEmailExistente("elportutatiss@gmail.com");
+		///////////////////////////////////////////////////
+		
+		try {
+			
+			
+			usuario = usuarioservice.findByEmail(uc);
+			
+			if(usuario!=null) {
+				
+				logger.trace("Id del usuario: "+usuario.getIdUsuario());
+				logger.trace("Nombre Perfil usuario: "+usuario.getNombrePerfil());
+			
+			}else {
+				logger.trace("Sin resultados");
+			}
+
+			logger.trace("End!");
+		} catch(DataException de) {
+			logger.error(uc, de);
+		} catch (ServiceException se) {
+			logger.error(uc, se);
+		}
+	}
+
+
 
 
 	public void testUsuarioLogin() {
 		logger.trace("Begin...");
 
 		////////////////////////////////////////////
-		String email = "elportutatiss@gmail.com";
-		String password = "Aa12345678xx";
+		String email = "noeglgl@hotmail.com";
+		String password = "Aa12345678";
 		///////////////////////////////////////////
 		try {
 
-			results = usuarioservice.login(email, password);
+			usuario = usuarioservice.login(email, password);
 
 			if (results != null) {
 				logger.info("Bienvenido a Reformatec ");
@@ -172,9 +210,9 @@ public class UsuarioServiceTest {
 	}
 
 
-	
-	
-	public void testVisualiza() {
+
+
+	public void testVisualizaUsuario() {
 		logger.trace("Begin...");
 		Connection c = null;
 
@@ -183,21 +221,19 @@ public class UsuarioServiceTest {
 		/////////////////////////////////////////
 		try {
 			c = ConnectionManager.getConnection();	
-			usuariodao.visualiza(c, idUsuario);
+			usuariodao.visualizaUsuario(c, idUsuario);
 
 			logger.trace("End!");
 		} catch(DataException de) {
 			logger.error(idUsuario, de);
 		}  catch(SQLException sqle){
 			logger.error(sqle);
-		}  catch(UserNotFoundException unfe){
-			logger.error(unfe);
 		}finally {
 			//JDBCUtils.closeConnection(c); Como cierro las conexiones en estos test,  me hago un metodo para eso o da igual? le hago comit/rollback al test?
 		}
 	}
-	
-	
+
+
 
 
 	public void testSingUp() {
@@ -212,21 +248,25 @@ public class UsuarioServiceTest {
 		String apellido2 = "pruebape2";
 		String nif = "11288856J";
 		String telefono1 = "999999999";
-		String telefono2 = null;
+		String telefono2 = "888888888";
 		String email = "prueba"+num+"2222@hotmail.com";
-		String nombrePerfil = "afuegoo";
+		//String email = "construccionesnepal@gmail.com";
+		String nombrePerfil = "afuegoodsdfsdfs";
 		String nombreCalle = "Cl/ de la ilusion nº1 bj";
 		String codigoPostal = "27500";
-		String Password = "Proband0";
+		String password = "Proband0";
 		int idPoblacion = 1;
-		int idProvincia = 2;
 		int idTipoUsuario = 1;
 		String cif = null;
 		String descripcion = null;
 		String direccionWeb = null;
 		Boolean servicio24 = null;
-		Boolean expertoNegocio = null;
 
+//		 usuario.setCodigoRegistro(RandomStringUtils.randomAlphabetic(10));
+//		 String hola = usuario.getCodigoRegistro();
+//				 System.out.println("QUIIII"+hola);
+		
+		String url = null;
 		idsEspecializaciones.add(1);
 		idsEspecializaciones.add(2);
 		idsEspecializaciones.add(3);
@@ -242,20 +282,17 @@ public class UsuarioServiceTest {
 		usuario.setNombrePerfil(nombrePerfil);
 		usuario.setNombreCalle(nombreCalle);
 		usuario.setCodigoPostal(codigoPostal);
-		usuario.setPassword(Password);
+		usuario.setPassword(password);
 		usuario.setIdPoblacion(idPoblacion);
-		usuario.setIdProvincia(idProvincia);
 		usuario.setIdTipoUsuario(idTipoUsuario);
 		usuario.setCif(cif);
 		usuario.setDescripcion(descripcion);
 		usuario.setDireccionWeb(direccionWeb);
 		usuario.setServicio24(servicio24);
-		usuario.setExpertoNegocio(expertoNegocio);
-		usuario.setIdsEspecializaciones(idsEspecializaciones);
-
+		
 		try {
 
-			usuarioservice.signUp(usuario);
+			usuarioservice.signUp(usuario, idsEspecializaciones, url);
 
 			int startIndex = 1;
 			int pageSize = 1;
@@ -283,28 +320,41 @@ public class UsuarioServiceTest {
 
 		//////////////////////////////////////////
 		Long idUsuario = 4L;
-		String password = "Aa1234567899";
+		String password = "Aa12345678";
 		String telefono1 = "999999999";
 		String telefono2 = null;
-		String nombrePerfil = "Pepepruebas";
+		String nombrePerfil = "sdfasdfasd";
 		String nombreCalle = "Cl/ de la ilusion nº1 bj";
 		String codPostal = "27500";
 		int idPoblacion = 1;
 		String descripcion =null;
 		String direccionWeb =null;
 		Boolean servicio24 = null;
-		Boolean expertoNegocio = null;
-		//////faltan las especializaciones...
+		Boolean proveedorVerificado = null;
+		String Cif = null;
+		
+		//Hay que pasar el tipo de usuario para decidir si borrar o no las especializaciones.
+		Integer idTipoUsuario = 1;
+		
+		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
+		
+		//idsEspecializaciones.add(1);
+		///idsEspecializaciones.add(2);
+		//idsEspecializaciones.add(3);
 		///////////////////////////////////////////
 		try {
-			
+
 			int startIndex = 1;
 			int pageSize = 1;
-			
+
 			uc.setIdUsuario(idUsuario);
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
 			logger.info("Usuario sin actualizar: "+results.getData());
 
+			usuario.setIdTipoUsuario(idTipoUsuario);
+			usuario.setIdUsuario(idUsuario);
+			usuario.setCif(Cif);
+			usuario.setProveedorVerificado(proveedorVerificado);
 			usuario.setPassword(password);
 			usuario.setTelefono1(telefono1);
 			usuario.setTelefono2(telefono2);
@@ -315,11 +365,10 @@ public class UsuarioServiceTest {
 			usuario.setDescripcion(descripcion);
 			usuario.setDireccionWeb(direccionWeb);
 			usuario.setServicio24(servicio24);
-			usuario.setExpertoNegocio(expertoNegocio);
 			//tengo lio con la lista de especializaciones por todos lados
 			//usuario.setEspecializaciones(null);
 
-			usuarioservice.update(usuario);
+			usuarioservice.update(usuario,idsEspecializaciones);
 
 			uc.setIdUsuario(idUsuario);
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
@@ -348,7 +397,7 @@ public class UsuarioServiceTest {
 
 			int startIndex = 1;
 			int pageSize = 1;
-			
+
 			uc.setIdUsuario(idUsuario);
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
 			logger.info("Usuario sin actualizar: "+results.getData());
@@ -377,15 +426,15 @@ public class UsuarioServiceTest {
 
 		UsuarioServiceTest test = new UsuarioServiceTest();
 
-		test.testFindByCriteria();
-		//test.testVisualiza();
+		//test.testFindByCriteria();
+		//test.testVisualizaUsuario();
 		//test.testCompruebaFavorito();
 		//test.testAnhadirFavorito();
 		//test.testDeleteFavorito();
 		//test.testUsuarioLogin();
-		//test.testSingUp();
-		//test.testUpdate();
-		//test.testValidaProveedor(); (sin hacer ni implementar)
+		test.testSingUp();
+		//test.testFindByEmail();
+		//test.testUpdate();		
 		//test.testUpdateStatus();
 	}
 }

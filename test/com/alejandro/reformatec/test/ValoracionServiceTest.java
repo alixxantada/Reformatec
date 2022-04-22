@@ -31,7 +31,7 @@ public class ValoracionServiceTest {
 		Long idValoracion = null;
 		Long idTrabajoRealizadoValorado = null;
 		Long idProveedorValorado = null;
-		Long idUsuarioValoraTrabajo= null;
+		Long idUsuarioValoraTrabajo = null;
 		Long idUsuarioValoraProveedor= null;
 		///////////////////////////////
 		try {
@@ -73,7 +73,6 @@ public class ValoracionServiceTest {
 		String descripcion = "parece que ha ido todo bien en la valoracion ";
 		int notaValoracion = 5;
 		Long idUsuarioValora = 1L;
-		int idtipoEstadoValoracion = 1;
 		Long idProveedorValorado = 2L;
 		Long idTrabajoRealizadoValorado = null;
 		///////////////////////////////		
@@ -81,7 +80,6 @@ public class ValoracionServiceTest {
 		valoracion.setDescripcion(descripcion);
 		valoracion.setNotaValoracion(notaValoracion);
 		valoracion.setIdUsuarioValora(idUsuarioValora);
-		valoracion.setIdTipoEstadoValoracion(idtipoEstadoValoracion);
 		valoracion.setIdProveedorValorado(idProveedorValorado);
 		valoracion.setIdTrabajoRealizadoValorado(idTrabajoRealizadoValorado);
 
