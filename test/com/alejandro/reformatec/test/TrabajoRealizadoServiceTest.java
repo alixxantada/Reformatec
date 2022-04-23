@@ -203,9 +203,9 @@ public class TrabajoRealizadoServiceTest {
 
 		TrabajoRealizadoServiceTest test = new TrabajoRealizadoServiceTest();
 
-		test.testFindByCriteria();
+		//test.testFindByCriteria();
 		//test.testCreate();
-		//test.testUpdate();
+		test.testUpdate();
 		//test.testupdateStatus();
 	}
 

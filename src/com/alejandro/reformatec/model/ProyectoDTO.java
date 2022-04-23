@@ -9,7 +9,8 @@ public class ProyectoDTO extends AbstractValueObject{
 
 	private Long idProyecto;
 	private String titulo;
-	private Date fechaCreacion;
+	private Date fechaHoraCreacion;
+	private Date fechaHoraModificacion;
 	private String descripcion;
 	private Integer presupuestoMax;
 
@@ -54,13 +55,24 @@ public class ProyectoDTO extends AbstractValueObject{
 	}
 
 
-	public Date getFechaCreacion() {
-		return fechaCreacion;
+
+	public Date getFechaHoraCreacion() {
+		return fechaHoraCreacion;
 	}
 
 
-	public void setFechaCreacion(Date fechaCreacion) {
-		this.fechaCreacion = fechaCreacion;
+	public void setFechaHoraCreacion(Date fechaHoraCreacion) {
+		this.fechaHoraCreacion = fechaHoraCreacion;
+	}
+
+
+	public Date getFechaHoraModificacion() {
+		return fechaHoraModificacion;
+	}
+
+
+	public void setFechaHoraModificacion(Date fechaHoraModificacion) {
+		this.fechaHoraModificacion = fechaHoraModificacion;
 	}
 
 

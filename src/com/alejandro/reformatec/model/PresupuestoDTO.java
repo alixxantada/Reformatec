@@ -11,6 +11,7 @@ public class PresupuestoDTO extends AbstractValueObject{
 	private String titulo;
 	private String descripcion;
 	private Date fechaHoraCreacion;
+	private Date fechaHoraModificacion;
 	private Double importeTotal;
 
 	private int idTipoEstadoPresupuesto;
@@ -78,6 +79,18 @@ public class PresupuestoDTO extends AbstractValueObject{
 
 	public void setFechaHoraCreacion(Date fechaHoraCreacion) {
 		this.fechaHoraCreacion = fechaHoraCreacion;
+	}
+
+
+
+	public Date getFechaHoraModificacion() {
+		return fechaHoraModificacion;
+	}
+
+
+
+	public void setFechaHoraModificacion(Date fechaHoraModificacion) {
+		this.fechaHoraModificacion = fechaHoraModificacion;
 	}
 
 

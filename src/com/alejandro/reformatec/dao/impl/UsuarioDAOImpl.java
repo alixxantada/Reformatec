@@ -49,7 +49,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 	private final String QUERY_BASE_FIND = " SELECT u.ID_USUARIO, u.NOMBRE, u.APELLIDO1, u.APELLIDO2, u.NIF, u.TELEFONO1, u.TELEFONO2, u.EMAIL, u.NOMBRE_PERFIL, "
 			+ " u.NOMBRE_CALLE, u.COD_POSTAL, u.ENCRYPTED_PASSWORD, u.ID_POBLACION_USUARIO, pl.NOMBRE, pl.ID_PROVINCIA, "
-			+ " pr.NOMBRE, u.ID_TIPO_USUARIO, tu.NOMBRE, u.ID_TIPO_ESTADO_CUENTA, tec.NOMBRE , AVG(v.NOTA_VALORACION), COUNT(DISTINCT(v.ID_VALORACION)), "
+			+ " pr.NOMBRE, u.ID_TIPO_USUARIO, tu.NOMBRE, u.ID_TIPO_ESTADO_CUENTA, tec.NOMBRE , u.COD_REGISTRO, AVG(v.NOTA_VALORACION), COUNT(DISTINCT(v.ID_VALORACION)), "
 			+ " u.NUM_VISUALIZACION, u.DESCRIPCION, u.DIRECCION_WEB, u.CIF, u.SERVICIO24, u.PROVEEDOR_VERIFICADO "
 			+ " FROM USUARIO u "
 			+ " LEFT OUTER JOIN USUARIO_FAVORITO uf ON u.ID_USUARIO = uf.ID_USUARIO_SEGUIDO "
@@ -528,7 +528,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getServicio24(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(), true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNumeroVisualizaciones(), true);
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCodigoRegistro(), true); 
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCodigoRegistro()); 
 
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
@@ -713,7 +713,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 
 
-
+	//No se usa, sino falta borrar sus especializaciones tambien para que funcionara ok
 	@Override
 	public long deleteById(Connection c, Long idUsuario) 
 			throws DataException, UserNotFoundException {
@@ -730,7 +730,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		try {
 
 			String sql =" DELETE FROM USUARIO "
-					+ "  WHERE ID = ? ";
+					+ "  WHERE ID_USUARIO = ? ";
 
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql);
@@ -793,7 +793,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		usuario.setNombreTipoUsuario(rs.getString(i++));
 		usuario.setIdTipoEstadoCuenta(rs.getInt(i++));
 		usuario.setNombreTipoEstadoCuenta(rs.getString(i++));
-
+		usuario.setCodigoRegistro(rs.getString(i++));
 
 		// Atributos de proveedores		
 		usuario.setValoracionMedia(rs.getDouble(i++));

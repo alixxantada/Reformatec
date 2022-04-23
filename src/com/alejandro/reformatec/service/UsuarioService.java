@@ -2,6 +2,7 @@ package com.alejandro.reformatec.service;
 
 import java.util.List;
 
+import com.alejandro.reformatec.exception.CodeInvalidException;
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.EmailPendienteValidacionException;
 import com.alejandro.reformatec.exception.InvalidUserOrPasswordException;
@@ -80,8 +81,8 @@ public interface UsuarioService {
 	public Results<UsuarioDTO> findByCriteria(UsuarioCriteria pc, int startIndex, int pageSize)
 			throws DataException, ServiceException;
 
-	
-	
+
+
 
 	/**
 	 * Método necesario tanto para registro de un usuario como para el login.
@@ -161,11 +162,28 @@ public interface UsuarioService {
 	 * @throws ServiceException No contemplado.
 	 */
 	public void updateStatus(Long idUsuario, Integer idEstadoCuenta) 
-			throws DataException, UserNotFoundException, ServiceException;
+			throws DataException, UserNotFoundException, CodeInvalidException, ServiceException;
+
+
 
 
 	/**
-	 * Método para borrar un usuario.
+	 * Método para poder validar que el email del cliente corresponde a su email
+	 * 
+	 * @param email Parametro de email para comprobar con bbdd
+	 * @param codRegistro Parametro codRegistro para comprobar con bbdd
+	 * @throws DataException Error en conexion BBDD o query DAOimpl.	
+	 * @throws UserNotFoundException Error no se encuentra el usuario con por el id indicado.
+	 * @throws CodeInvalidException Error el codigo de registro no es correcto.
+	 * @throws ServiceException No contemplado.
+	 */
+	public UsuarioDTO validaEmail(String email, String codRegistro) 
+			throws DataException, UserNotFoundException, CodeInvalidException, ServiceException;
+
+
+
+	/**
+	 * Método para borrar un usuario.(Sin usar actualmente)
 	 * 
 	 * @param idUsuario
 	 * @return Devuelve el número de usuarios borrados(1) si fue todo bien sino UserNotFoundException

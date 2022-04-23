@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,7 +50,7 @@ public class UsuarioServiceTest {
 		uc.setOrderBy(null);
 		uc.setEmailActivo(null);
 		uc.setEmailExistente(null);
-		uc.setIdUsuario(null);
+		uc.setIdUsuario(1L);
 		uc.setIdUsuarioFavorito(null);
 		uc.setIdPoblacion(null);
 
@@ -93,17 +92,17 @@ public class UsuarioServiceTest {
 		uc.setEmailActivo(null);
 		uc.setEmailExistente("elportutatiss@gmail.com");
 		///////////////////////////////////////////////////
-		
+
 		try {
-			
-			
+
+
 			usuario = usuarioservice.findByEmail(uc);
-			
+
 			if(usuario!=null) {
-				
+
 				logger.trace("Id del usuario: "+usuario.getIdUsuario());
 				logger.trace("Nombre Perfil usuario: "+usuario.getNombrePerfil());
-			
+
 			}else {
 				logger.trace("Sin resultados");
 			}
@@ -241,7 +240,7 @@ public class UsuarioServiceTest {
 
 		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
 
-		Long num = System.currentTimeMillis();
+		//Long num = System.currentTimeMillis();
 		/////////////////////////////////////////////////////////////
 		String nombre = "PEDRO";
 		String apellido1 = "pruebape1";
@@ -249,27 +248,29 @@ public class UsuarioServiceTest {
 		String nif = "11288856J";
 		String telefono1 = "999999999";
 		String telefono2 = "888888888";
-		String email = "prueba"+num+"2222@hotmail.com";
+		String email = "alixxantada@gmail.com";
 		//String email = "construccionesnepal@gmail.com";
-		String nombrePerfil = "afuegoodsdfsdfs";
+		String nombrePerfil = "afuegoodsdfsdssdfs";
 		String nombreCalle = "Cl/ de la ilusion nº1 bj";
 		String codigoPostal = "27500";
-		String password = "Proband0";
+		String password = "Aa12345678";
 		int idPoblacion = 1;
 		int idTipoUsuario = 1;
 		String cif = null;
 		String descripcion = null;
 		String direccionWeb = null;
 		Boolean servicio24 = null;
+		String codRegistro = "ASDBFGHJTR";
 
-//		 usuario.setCodigoRegistro(RandomStringUtils.randomAlphabetic(10));
-//		 String hola = usuario.getCodigoRegistro();
-//				 System.out.println("QUIIII"+hola);
-		
-		String url = null;
-		idsEspecializaciones.add(1);
-		idsEspecializaciones.add(2);
-		idsEspecializaciones.add(3);
+		String url = "http://localhost:8080/ReformatecWeb/usuario?action=validar-email&email=alixxantada@gmail.com&cod-registro=ASDBFGHJTR";
+
+		//		 usuario.setCodigoRegistro(RandomStringUtils.randomAlphabetic(10));
+		//		 String hola = usuario.getCodigoRegistro();
+		//				 System.out.println("QUIIII"+hola);
+
+//		idsEspecializaciones.add(1);
+//		idsEspecializaciones.add(2);
+//		idsEspecializaciones.add(3);
 
 		///////////////////////////////////////////////////////////////
 		usuario.setNombre(nombre);
@@ -289,7 +290,8 @@ public class UsuarioServiceTest {
 		usuario.setDescripcion(descripcion);
 		usuario.setDireccionWeb(direccionWeb);
 		usuario.setServicio24(servicio24);
-		
+		usuario.setCodigoRegistro(codRegistro);
+
 		try {
 
 			usuarioservice.signUp(usuario, idsEspecializaciones, url);
@@ -332,12 +334,12 @@ public class UsuarioServiceTest {
 		Boolean servicio24 = null;
 		Boolean proveedorVerificado = null;
 		String Cif = null;
-		
+
 		//Hay que pasar el tipo de usuario para decidir si borrar o no las especializaciones.
 		Integer idTipoUsuario = 1;
-		
+
 		List<Integer> idsEspecializaciones = new ArrayList<Integer>();
-		
+
 		//idsEspecializaciones.add(1);
 		///idsEspecializaciones.add(2);
 		//idsEspecializaciones.add(3);
@@ -418,6 +420,26 @@ public class UsuarioServiceTest {
 
 
 
+	public void testValidaEmail() {
+
+		logger.trace("Begin...");
+
+		////////////////////////////////////////////
+		String email = "prueba16507105497502222@hotmail.com";
+		String codRegistro = "ASDBFGHJTR";
+		///////////////////////////////////////////
+		try {
+
+			UsuarioDTO u = usuarioservice.validaEmail(email, codRegistro);
+
+			logger.trace("usuario: "+u);
+			logger.trace("End!");
+		} catch(DataException de) {
+			logger.error(usuario, de);
+		}  catch(ServiceException se){
+			logger.error(usuario, se);
+		}
+	}
 
 
 
@@ -433,6 +455,7 @@ public class UsuarioServiceTest {
 		//test.testDeleteFavorito();
 		//test.testUsuarioLogin();
 		test.testSingUp();
+		//test.testValidaEmail();
 		//test.testFindByEmail();
 		//test.testUpdate();		
 		//test.testUpdateStatus();

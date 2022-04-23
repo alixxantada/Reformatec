@@ -55,7 +55,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 		try {			
 
 			StringBuilder queryString = new StringBuilder("SELECT pr.ID_PROYECTO, pr.TITULO, p.ID_PRESUPUESTO, p.TITULO, p.DESCRIPCION, "
-					+ " p.FECHA_HORA_CREACION, p.IMPORTE_TOTAL, u.ID_USUARIO, u.NOMBRE_PERFIL, "
+					+ " p.FECHA_HORA_CREACION, p.FECHA_HORA_MODIFICACION, p.IMPORTE_TOTAL, u.ID_USUARIO, u.NOMBRE_PERFIL, "
 					+ " tep.ID_TIPO_ESTADO_PRESUPUESTO, tep.NOMBRE, uu.ID_USUARIO, uu.NOMBRE_PERFIL "
 					+ " FROM PRESUPUESTO p "
 					+ " INNER JOIN USUARIO u ON p.ID_USUARIO_CREADOR_PRESUPUESTO = u.ID_USUARIO "
@@ -169,9 +169,9 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
 		try {
 
-			String sql = " INSERT INTO PRESUPUESTO(TITULO, DESCRIPCION, FECHA_HORA_CREACION, "
+			String sql = " INSERT INTO PRESUPUESTO(TITULO, DESCRIPCION, FECHA_HORA_CREACION, FECHA_HORA_MODIFICACION, "
 					+ " IMPORTE_TOTAL, ID_TIPO_ESTADO_PRESUPUESTO, ID_PROYECTO, ID_USUARIO_CREADOR_PRESUPUESTO) "
-					+ " VALUES (?,?,?,?,?,?,?) ";
+					+ " VALUES (?,?,?,?,?,?,?,?) ";
 
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
@@ -180,6 +180,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getTitulo());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getDescripcion());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getFechaHoraCreacion());
+			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getFechaHoraModificacion(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getImporteTotal());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdTipoEstadoPresupuesto());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdProyecto());
@@ -246,7 +247,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 			String sql =" UPDATE PRESUPUESTO "
 					+ "	SET		TITULO = ?,"
 					+ "			DESCRIPCION= ?,"
-					+ "			FECHA_HORA_CREACION = ?,"
+					+ "			FECHA_HORA_MODIFICACION = ?,"
 					+ "			IMPORTE_TOTAL = ?,"
 					+ "			ID_TIPO_ESTADO_PRESUPUESTO = ?,"
 					+ "			ID_PROYECTO = ?,"
@@ -259,7 +260,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getTitulo());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getDescripcion());
-			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getFechaHoraCreacion());
+			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getFechaHoraModificacion());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getImporteTotal());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdTipoEstadoPresupuesto());
 			JDBCUtils.setParameter(preparedStatement, i++, presupuesto.getIdProyecto());
@@ -374,6 +375,7 @@ public class PresupuestoDAOImpl implements PresupuestoDAO {
 		presupuesto.setTitulo(rs.getString(i++));
 		presupuesto.setDescripcion(rs.getString(i++));
 		presupuesto.setFechaHoraCreacion(rs.getDate(i++));
+		presupuesto.setFechaHoraModificacion(rs.getDate(i++));
 		presupuesto.setImporteTotal(rs.getDouble(i++));
 		presupuesto.setIdUsuarioCreadorPresupuesto(rs.getLong(i++));
 		presupuesto.setNombrePerfilUsuarioCreadorPresupuesto(rs.getString(i++));

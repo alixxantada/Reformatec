@@ -24,6 +24,7 @@ import com.alejandro.reformatec.dao.impl.ValoracionDAOImpl;
 import com.alejandro.reformatec.dao.util.ConnectionManager;
 import com.alejandro.reformatec.dao.util.JDBCUtils;
 import com.alejandro.reformatec.dao.util.PasswordEncryptionUtil;
+import com.alejandro.reformatec.exception.CodeInvalidException;
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.EmailPendienteValidacionException;
 import com.alejandro.reformatec.exception.FavoritoAlreadyExistsException;
@@ -80,7 +81,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 	@Override
 	public UsuarioDTO findByEmail(UsuarioCriteria uc)
 			throws DataException, ServiceException{
-		
+
 		logger.traceEntry();
 
 		Connection c = null;
@@ -166,21 +167,21 @@ public class UsuarioServiceImpl implements UsuarioService {
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
 
-			
+
 			//Comprobamos si el usuario existe en bbdd, si existe comprobamos si tiene la cuenta activa, si esta pendiente de validar el mail o se dio de baja.
 			uc.setEmailExistente(u.getEmail());
 			usuario = usuarioDAO.findByEmail(c, uc);
 			if (usuario!=null) {
-				
+
 				if(usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_ACTIVA) {
 					throw new EmailPendienteValidacionException(usuario.getEmail());
-					
+
 				} else if (usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_VALIDADA) {					
 					throw new UserAlreadyExistsException(usuario.getEmail());
-					
+
 				} else if (usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_CANCELADA){
 					throw new UserLowInTheSystemException(usuario.getEmail());
-					
+
 				}
 			}
 
@@ -188,7 +189,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 			// encriptamos la password y la seteamos ya encriptada
 			u.setEncryptedPassword(PasswordEncryptionUtil.encryptPassword(u.getPassword()));
 			//TODO Le pongo ya el estado de validada porque no se como validar el mail, genero en el create un num aleatorio, lo envio por mail, y antes de un login, si no esta validada la cuenta, qque le envie a otra jsp pa introducir copdigo, comprobar si son iguales al que envie al mail(setear en bbdd COD_REGISTRO) y que al meter el codigo si coincide le cambie el tipo estado cuenta y le envie al perfil.
-			u.setIdTipoEstadoCuenta(EstadoCuenta.CUENTA_VALIDADA);
+			u.setIdTipoEstadoCuenta(EstadoCuenta.CUENTA_ACTIVA);
 
 			// Pongo las visualizaciones a 0 a los proveedores y a null a los clientes
 			if (u.getIdTipoUsuario()==1) {
@@ -199,9 +200,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 				//TODO Faltaria implementar la verificacion de documentacion de los proveedores, mientras lo pongo a true.
 				u.setProveedorVerificado(true);
 			}
-
-			//TODO El codigo registro era para validar de alguna forma el email del usuario..Por ahora no esta obligatorio porque esta sin implementar
-			u.setCodigoRegistro(null);
 
 
 			String nombrePerfil=u.getNombrePerfil().toLowerCase();
@@ -238,17 +236,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 				logger.trace("Service envia usuario a dao: "+u+", idsEspecializaciones; "+especializaciones);
 			} 
 
-		
-			userId = usuarioDAO.create(c, u, especializaciones);
-			
 
-			StringBuilder msgSb = new StringBuilder("Hola ").append(u.getNombre())
-					.append(", Bienvenid@ a Reformatec...")
-					.append("Valida tu Cuenta en"+url);
+			userId = usuarioDAO.create(c, u, especializaciones);
+
+
+			StringBuilder msgSb = new StringBuilder("<html><body><h1> Hola ").append(u.getNombre())
+					.append(",</h1><h2> Bienvenid@ a Reformatec!</h2>")
+					.append("<p>Por seguridad, para poder usar tu cuenta necesitamos que valides tu email en el siguiente enlace: <a href='"+url+"'>Valida tu Cuenta!</a></p></body></html>");
 
 			String msg = msgSb.toString();
 
-			mailService.sendEmail("no-reply@reformatec.com", "bienvenido a Reformatec", msg, u.getEmail());
+			mailService.sendHTML("no-reply@reformatec.com", "bienvenido a Reformatec", msg, u.getEmail());
 
 			// fin de la transaccion a continuacion
 			commitOrRollback = true;
@@ -295,31 +293,31 @@ public class UsuarioServiceImpl implements UsuarioService {
 			uc.setEmailActivo(email);
 			usuario = usuarioDAO.findByEmail(c, uc);			
 			if(usuario.getEmail()!=null) {
-					
+
 				// en el metodo de checkpassword le pasamos la variable "password" como la contraseña plana (la que escribe el usuario, sin encriptar) y la comparamos con la contraseña encriptada de la base de datos
 				boolean passwordOK = PasswordEncryptionUtil.checkPassword(password, usuario.getEncryptedPassword());
-	
+
 				if(passwordOK!=true) {
 					throw new InvalidUserOrPasswordException(email);
 				}
-				
+
 			} else {
-				
+
 				uc.setEmailActivo(null);
 				uc.setEmailExistente(email);
 				usuario = usuarioDAO.findByEmail(c, uc);				
 				if (usuario.getEmail()!=null) {					
-					
+
 					if (usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_ACTIVA) {
 						throw new EmailPendienteValidacionException(email);
 					} else if (usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_CANCELADA) {
 						throw new UserLowInTheSystemException(email);
 					}
-					
+
 				}
 				throw new InvalidUserOrPasswordException(email);
 			}
-				
+
 			// fin de la transaccion a continuacion
 			commitOrRollback = true;
 
@@ -474,12 +472,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 				u.setEncryptedPassword(PasswordEncryptionUtil.encryptPassword(u.getPassword()));
 			}
 
-			
+
 			if (u.getIdTipoUsuario()==TipoUsuario.USUARIO_PROVEEDOR) {
 				//Primero le borro las especializaciones que pueda tener antes del update
 				especializacionDAO.deleteEspecializacionUsuario(c, u.getIdUsuario());
 			}
-			
+
 			usuarioDAO.update(c, u, especializaciones);
 
 			// fin de la transacción a continuacion
@@ -503,6 +501,69 @@ public class UsuarioServiceImpl implements UsuarioService {
 			JDBCUtils.closeConnection(c, commitOrRollback);
 		}
 	}
+
+
+	@Override
+	public UsuarioDTO validaEmail(String email, String codRegistro) 
+			throws DataException, UserLowInTheSystemException, CodeInvalidException, UserNotFoundException, ServiceException {
+
+		logger.traceEntry();
+
+		Connection c = null;
+		boolean commitOrRollback = false;
+		UsuarioCriteria uc = new UsuarioCriteria();
+		UsuarioDTO usuario = new UsuarioDTO();
+
+		try {
+			c = ConnectionManager.getConnection();
+
+			// inicio de la transaccion, es como un beggin
+			c.setAutoCommit(false);
+
+			uc.setEmailExistente(email);
+			usuario = usuarioDAO.findByEmail(c, uc);
+			if(usuario.getIdUsuario()!=null) {
+				if (usuario.getIdTipoEstadoCuenta()==EstadoCuenta.CUENTA_CANCELADA) {
+					throw new UserLowInTheSystemException();
+
+				} else {
+					if (usuario.getCodigoRegistro().equals(codRegistro)) {
+						Integer idEstadoCuenta = EstadoCuenta.CUENTA_VALIDADA;
+						Long idUsuario = usuario.getIdUsuario();
+						usuarioDAO.updateStatus(c, idUsuario, idEstadoCuenta);
+
+					} else {
+						throw new CodeInvalidException();
+					}
+				}
+
+			} else {
+				throw new UserNotFoundException();
+			}
+
+			// fin de la transacción a continuacion
+			commitOrRollback = true;
+
+			logger.traceExit();
+
+		} catch (UserNotFoundException unfe) {
+			if (logger.isErrorEnabled()) {
+				logger.error(unfe);
+			}
+			throw unfe;
+
+		} catch (SQLException sqle) {
+			if (logger.isErrorEnabled()) {
+				logger.error(email,sqle);
+			}
+			throw new DataException(sqle);		
+
+		} finally {
+			JDBCUtils.closeConnection(c, commitOrRollback);
+		}
+		return usuario;
+	}
+
 
 
 	@Override

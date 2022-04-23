@@ -203,8 +203,8 @@ public class ProyectoServiceTest {
 		ProyectoServiceTest test = new ProyectoServiceTest();
 
 		//test.testFindByCriteria();
-			test.testCreate();
-			//	test.testUpdate();
+			//test.testCreate();
+				test.testUpdate();
 		//		test.testUpdateStatus();
 	}
 }

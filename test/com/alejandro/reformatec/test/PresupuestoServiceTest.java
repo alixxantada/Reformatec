@@ -122,7 +122,7 @@ public class PresupuestoServiceTest {
 		List<LineaPresupuestoDTO> lineas = new ArrayList<LineaPresupuestoDTO>();
 		
 		////////////////////////////////////
-		Long idPresupuesto = 4L;
+		Long idPresupuesto = 1L;
 		String titulo = "cambiando titulo de presupuesto22";
 		String descripcion = "probando a cambiar la descripcion del presupuesto";
 		
@@ -218,9 +218,9 @@ public class PresupuestoServiceTest {
 
 		PresupuestoServiceTest test = new PresupuestoServiceTest();
 
-		test.testFindByCriteria();
+		//test.testFindByCriteria();
 		//test.testCreate();
-		//test.testUpdate();
+		test.testUpdate();
 		//test.testupdateStatus();
 	}
 }

@@ -11,7 +11,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.alejandro.reformatec.dao.util.ConfigurationManager;
 import com.alejandro.reformatec.dao.util.ConstantConfigUtil;
-import com.alejandro.reformatec.exception.MailException;
 import com.alejandro.reformatec.service.MailService;
 
 
@@ -31,20 +30,20 @@ public class MailServiceImpl implements MailService {
 
 	@Override
 	public void sendEmail(String from, String subject, String text, String...to)
-			throws MailException {
+			throws EmailException {
 
 		logger.traceEntry();
-		
+
 		ConfigurationManager cfgM = ConfigurationManager.getInstance();
 		//cfgM.setKeyMap("Reformatec");
-		
-		
+
+
 		try {
 
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sending Email from "+from+" to "+to+"...");
 			}
-			
+
 			Email email = new SimpleEmail();
 			email.setHostName(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, SERVER));
 			email.setSmtpPort(Integer.valueOf(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, PORT)));
@@ -55,29 +54,31 @@ public class MailServiceImpl implements MailService {
 			email.setMsg(text);
 			email.addTo(to);
 			email.send();
-			
+
 			logger.traceExit();
 
 		} catch (EmailException ee) {
 			if (logger.isErrorEnabled()) {
 				logger.error("Sending from "+from+" to "+to+"...", ee);
 			}
-			throw new MailException(ee.getMessage(), ee);
+			throw new EmailException(ee.getMessage(), ee);
 		}
 	}
 
 
 	public void sendHTML(String from, String subject, String htmlMessage, String... to)
-			throws MailException{
+			throws EmailException {
 
 		logger.traceEntry();
 
 		ConfigurationManager cfgM = ConfigurationManager.getInstance();
-		
+
 		try {
+
 			if (logger.isDebugEnabled()) {
 				logger.debug("Sending HTML from "+from+" to "+to+"...");
 			}
+
 			HtmlEmail email = new HtmlEmail();
 			email.setHostName(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, SERVER));
 			email.setSmtpPort(Integer.valueOf(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, PORT)));
@@ -95,7 +96,7 @@ public class MailServiceImpl implements MailService {
 			if (logger.isErrorEnabled()) {
 				logger.error("Sending from "+from+" to "+to+"...", ee);
 			}
-			throw new MailException(ee.getMessage(), ee);
+			throw new EmailException(ee.getMessage(), ee);
 		}
 	}
 }

@@ -15,7 +15,6 @@ import com.alejandro.reformatec.dao.LineaPresupuestoDAO;
 import com.alejandro.reformatec.dao.util.DAOUtils;
 import com.alejandro.reformatec.dao.util.JDBCUtils;
 import com.alejandro.reformatec.exception.DataException;
-import com.alejandro.reformatec.exception.LineaPresupuestoNotFoundException;
 import com.alejandro.reformatec.model.LineaPresupuestoCriteria;
 import com.alejandro.reformatec.model.LineaPresupuestoDTO;
 
@@ -33,7 +32,7 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 	@Override
 	public List<LineaPresupuestoDTO> findByCriteria(Connection c, LineaPresupuestoCriteria pc)
 			throws DataException{
-		
+
 		if (logger.isTraceEnabled()) {
 			logger.trace("Begin");
 		}
@@ -89,7 +88,7 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
 			}
-			
+
 			rs = preparedStatement.executeQuery();
 
 			while (rs.next()) {
@@ -121,7 +120,7 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 	@Override
 	public long create(Connection c, LineaPresupuestoDTO lineaPresupuesto) 
 			throws DataException{
-		
+
 		if (logger.isTraceEnabled()) {
 			logger.trace("Begin");
 		}
@@ -146,7 +145,7 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
 			}
-			
+
 			int insertedRows = preparedStatement.executeUpdate();
 			if (insertedRows==1) {
 				rs = preparedStatement.getGeneratedKeys();
@@ -182,9 +181,9 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 	//TODO No se actualiza una linea de presupuesto, se borran y se crean de nuevo
 
 	@Override
-	public long deleteById(Connection c, Long idLineaPresupuesto) 
-			throws DataException, LineaPresupuestoNotFoundException{
-		
+	public long deleteByIdPresupuesto(Connection c, Long idLineaPresupuesto) 
+			throws DataException {
+
 		if (logger.isTraceEnabled()) {
 			logger.trace("Begin");
 		}
@@ -196,7 +195,7 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 
 		try {
 			String sql =" DELETE FROM LINEA_PRESUPUESTO lp"
-					+ "  WHERE ID_LINEA_PRESUPUESTO = ? ";
+					+ "  WHERE ID_PRESUPUESTO = ? ";
 
 			//create prepared statement
 			preparedStatement = c.prepareStatement(sql);
@@ -207,10 +206,6 @@ public class LineaPresupuestoDAOImpl implements LineaPresupuestoDAO{
 				logger.info(preparedStatement);
 			}
 			deleteRows = preparedStatement.executeUpdate();
-
-			if (deleteRows!=1) {
-				throw new LineaPresupuestoNotFoundException("Linea de Presupuesto: "+idLineaPresupuesto+" cant delete");
-			} 
 
 			if (logger.isTraceEnabled()) {
 				logger.trace("End");

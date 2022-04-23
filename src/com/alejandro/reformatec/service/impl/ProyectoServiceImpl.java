@@ -114,10 +114,9 @@ public class ProyectoServiceImpl implements ProyectoService {
 			// Aqui es donde se hace set de la hora que se crea, solo del dia y en formato date
 			Calendar cal=Calendar.getInstance();
 			Date date=cal.getTime();
-			proyecto.setFechaCreacion(date);
-			if (logger.isTraceEnabled()) {
-				logger.trace("AQUII  fecha hora: "+date);
-			}
+			proyecto.setFechaHoraCreacion(date);
+			proyecto.setFechaHoraModificacion(null);
+			
 			proyecto.setIdTipoEstadoProyecto(EstadoProyecto.PROYECTO_ACTIVO);
 
 			String titulo = proyecto.getTitulo().toLowerCase();
@@ -195,7 +194,7 @@ public class ProyectoServiceImpl implements ProyectoService {
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
 			
-			//TODO Deberia meter otro campo para fecha modificacion en bbdd
+			proyecto.setFechaHoraModificacion(new Date());
 			
 			//Primero le borro las especializaciones que pueda tener antes del update
 			especializacionDAO.deleteEspecializacionProyecto(c, proyecto.getIdProyecto());

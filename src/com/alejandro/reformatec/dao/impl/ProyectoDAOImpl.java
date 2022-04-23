@@ -63,7 +63,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 		try {
 
 			StringBuilder queryString = new StringBuilder("SELECT u.ID_USUARIO, u.NOMBRE_PERFIL, p.ID_PROYECTO, p.TITULO, "
-					+ " p.FECHA_CREACION, p.DESCRIPCION, pl.ID_POBLACION, pl.NOMBRE, pr.ID_PROVINCIA, pr.NOMBRE, "
+					+ " p.FECHA_HORA_CREACION, p.FECHA_HORA_MODIFICACION, p.DESCRIPCION, pl.ID_POBLACION, pl.NOMBRE, pr.ID_PROVINCIA, pr.NOMBRE, "
 					+ " p.PRESUPUESTO_MAX, tep.ID_TIPO_ESTADO_PROYECTO, tep.NOMBRE, e.ID_ESPECIALIZACION, e.NOMBRE "
 					+ " FROM PROYECTO p "
 					+ " INNER JOIN USUARIO u ON p.ID_USUARIO_CREADOR_PROYECTO = u.ID_USUARIO"
@@ -106,7 +106,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			}
 			
 			if(pc.getIdUsuarioCreador()!=null) {
-				DAOUtils.addClause(queryString, first," p.ID_USUARIO_CREADOR_PROYECTO = ? GROUP BY p.ID_PROYECTO ORDER BY p.FECHA_CREACION DESC  ");
+				DAOUtils.addClause(queryString, first," p.ID_USUARIO_CREADOR_PROYECTO = ? GROUP BY p.ID_PROYECTO ORDER BY p.FECHA_HORA_CREACION DESC  ");
 				first = false;
 			}
 
@@ -120,7 +120,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 				if(pc.getOrderBy()!=null) {
 					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(pc.getOrderBy()));
 				} else {
-					queryString.append(" ORDER BY p.FECHA_CREACION DESC ");
+					queryString.append(" ORDER BY p.FECHA_HORA_CREACION DESC ");
 				}
 			}
 			
@@ -214,16 +214,17 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 
 		try {
 
-			String sql = " INSERT INTO PROYECTO(TITULO, FECHA_CREACION, DESCRIPCION, ID_POBLACION, "
+			String sql = " INSERT INTO PROYECTO(TITULO, FECHA_HORA_CREACION, FECHA_HORA_MODIFICACION, DESCRIPCION, ID_POBLACION, "
 					+ " PRESUPUESTO_MAX, ID_USUARIO_CREADOR_PROYECTO, ID_TIPO_ESTADO_PROYECTO) "
-					+ " VALUES (?,?,?,?,?,?,?) ";
+					+ " VALUES (?,?,?,?,?,?,?,?) ";
 
 			preparedStatement = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
 
 			int i  = 1;
 
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getTitulo());
-			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getFechaCreacion());
+			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getFechaHoraCreacion());
+			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getFechaHoraModificacion(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getDescripcion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdPoblacion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getPresupuestoMax());
@@ -288,10 +289,11 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 		try {
 
 			String sql =" UPDATE PROYECTO "
-					+ "	SET		TITULO = ?,"
-					+ "			DESCRIPCION= ?,"
-					+ "			PRESUPUESTO_MAX= ?,"
-					+ "			ID_POBLACION= ? "
+					+ "	SET		TITULO = ?, "
+					+ "			DESCRIPCION= ?, "
+					+ "			PRESUPUESTO_MAX= ?, "
+					+ "			ID_POBLACION= ?, "
+					+ "			FECHA_HORA_MODIFICACION= ? "
 					+ "  WHERE ID_PROYECTO = ? ";
 
 			//create prepared statement
@@ -303,6 +305,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getDescripcion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getPresupuestoMax());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdPoblacion());
+			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getFechaHoraModificacion());
 			JDBCUtils.setParameter(preparedStatement, i++, proyecto.getIdProyecto());
 
 			if (logger.isInfoEnabled()) {
@@ -406,7 +409,8 @@ public class ProyectoDAOImpl implements ProyectoDAO {
 		proyecto.setNombrePerfilUsuarioCreadorProyecto(rs.getString(i++));
 		proyecto.setIdProyecto(rs.getLong(i++));
 		proyecto.setTitulo(rs.getString(i++));
-		proyecto.setFechaCreacion(rs.getDate(i++));
+		proyecto.setFechaHoraCreacion(rs.getDate(i++));
+		proyecto.setFechaHoraModificacion(rs.getDate(i++));
 		proyecto.setDescripcion(rs.getString(i++));
 		proyecto.setIdPoblacion(rs.getInt(i++));
 		proyecto.setNombrePoblacion(rs.getString(i++));
