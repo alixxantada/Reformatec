@@ -35,7 +35,6 @@ public class MailServiceImpl implements MailService {
 		logger.traceEntry();
 
 		ConfigurationManager cfgM = ConfigurationManager.getInstance();
-		//cfgM.setKeyMap("Reformatec");
 
 
 		try {

@@ -29,7 +29,13 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 
 	}
 
-
+	private final String QUERY_BASE_FIND = "SELECT v.ID_VALORACION, v.TITULO, v.DESCRIPCION, v.NOTA_VALORACION, v.FECHA_HORA_CREACION, uu.ID_USUARIO, "
+			+ " uu.NOMBRE_PERFIL, tr.ID_TRABAJO_REALIZADO, tr.TITULO, u.ID_USUARIO, u.NOMBRE_PERFIL, tev.ID_TIPO_ESTADO_VALORACION, tev.NOMBRE "
+			+ " FROM VALORACION v "
+			+ " LEFT OUTER JOIN USUARIO u ON v.ID_PROVEEDOR_VALORADO = u.ID_USUARIO "
+			+ " INNER JOIN TIPO_ESTADO_VALORACION tev ON v.ID_TIPO_ESTADO_VALORACION = tev.ID_TIPO_ESTADO_VALORACION "
+			+ " LEFT OUTER JOIN USUARIO uu ON v.ID_USUARIO_VALORA = uu.ID_USUARIO "
+			+ " LEFT OUTER JOIN TRABAJO_REALIZADO tr ON v.ID_TRABAJO_REALIZADO_VALORADO = tr.ID_TRABAJO_REALIZADO ";
 
 	@Override
 	public Results<ValoracionDTO> findByCriteria(Connection c, ValoracionCriteria vc, int startIndex, int pageSize)
@@ -45,13 +51,7 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 		Results<ValoracionDTO> results = new Results<ValoracionDTO>();
 
 		try {			
-			StringBuilder queryString = new StringBuilder("SELECT v.ID_VALORACION, v.TITULO, v.DESCRIPCION, v.NOTA_VALORACION, v.FECHA_HORA_CREACION, uu.ID_USUARIO, "
-					+ " uu.NOMBRE_PERFIL, tr.ID_TRABAJO_REALIZADO, tr.TITULO, u.ID_USUARIO, u.NOMBRE_PERFIL, tev.ID_TIPO_ESTADO_VALORACION, tev.NOMBRE "
-					+ " FROM VALORACION v "
-					+ " LEFT OUTER JOIN USUARIO u ON v.ID_PROVEEDOR_VALORADO = u.ID_USUARIO "
-					+ " INNER JOIN TIPO_ESTADO_VALORACION tev ON v.ID_TIPO_ESTADO_VALORACION = tev.ID_TIPO_ESTADO_VALORACION "
-					+ " LEFT OUTER JOIN USUARIO uu ON v.ID_USUARIO_VALORA = uu.ID_USUARIO "
-					+ " LEFT OUTER JOIN TRABAJO_REALIZADO tr ON v.ID_TRABAJO_REALIZADO_VALORADO = tr.ID_TRABAJO_REALIZADO ");
+			StringBuilder queryString = new StringBuilder(QUERY_BASE_FIND);
 
 			boolean first = true;
 
@@ -146,7 +146,67 @@ public class ValoracionDAOImpl implements ValoracionDAO{
 
 
 
+	@Override
+	public Results<ValoracionDTO> findByBuenaValoracionRamdom(Connection c, int startIndex, int pageSize)
+			throws DataException {
+		
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin");
+		}
 
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		Results<ValoracionDTO> results = new Results<ValoracionDTO>();
+
+		try {			
+			StringBuilder queryString = new StringBuilder(QUERY_BASE_FIND);
+
+			queryString.append(" WHERE v.NOTA_VALORACION >=3 ORDER BY RAND () ");
+
+			preparedStatement = c.prepareStatement(queryString.toString(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+	
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+			
+			rs = preparedStatement.executeQuery();
+
+			List<ValoracionDTO> valoracioness = new ArrayList<ValoracionDTO>();
+			ValoracionDTO valoracion = null;			
+			int resultsLoaded=0;
+
+			if ((startIndex >=1) && rs.absolute(startIndex)) {
+				do {
+					valoracion = loadNext(rs);
+					valoracioness.add(valoracion);
+					resultsLoaded++;
+				} while (resultsLoaded<pageSize && rs.next());
+			}
+
+			results.setData(valoracioness);
+			results.setTotal(DAOUtils.getTotalRows(rs));
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End valoraciones: "+results);
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error(results, sqle);
+			}
+			throw new DataException(sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+		return results;
+	}
+		
+	
+	
 	@Override
 	public long create(Connection c, ValoracionDTO valoracion)
 			throws DataException{

@@ -21,7 +21,9 @@ import com.alejandro.reformatec.dao.impl.ProyectoDAOImpl;
 import com.alejandro.reformatec.dao.impl.TrabajoRealizadoDAOImpl;
 import com.alejandro.reformatec.dao.impl.UsuarioDAOImpl;
 import com.alejandro.reformatec.dao.impl.ValoracionDAOImpl;
+import com.alejandro.reformatec.dao.util.ConfigurationManager;
 import com.alejandro.reformatec.dao.util.ConnectionManager;
+import com.alejandro.reformatec.dao.util.ConstantConfigUtil;
 import com.alejandro.reformatec.dao.util.JDBCUtils;
 import com.alejandro.reformatec.dao.util.PasswordEncryptionUtil;
 import com.alejandro.reformatec.exception.CodeInvalidException;
@@ -77,7 +79,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 
-
+	private static final String CFGM_PFX = "service.usuario.";
+	private static final String START_INDEX = CFGM_PFX + "startIndex";
+	private static final String PAGE_SIZE = CFGM_PFX + "pageSize";
+	private static final String MAIL = "service.mail.account";
+	
+	private ConfigurationManager cfgM = ConfigurationManager.getInstance();
+	
 	@Override
 	public UsuarioDTO findByEmail(UsuarioCriteria uc)
 			throws DataException, ServiceException{
@@ -188,7 +196,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 			// encriptamos la password y la seteamos ya encriptada
 			u.setEncryptedPassword(PasswordEncryptionUtil.encryptPassword(u.getPassword()));
-			//TODO Le pongo ya el estado de validada porque no se como validar el mail, genero en el create un num aleatorio, lo envio por mail, y antes de un login, si no esta validada la cuenta, qque le envie a otra jsp pa introducir copdigo, comprobar si son iguales al que envie al mail(setear en bbdd COD_REGISTRO) y que al meter el codigo si coincide le cambie el tipo estado cuenta y le envie al perfil.
+			
 			u.setIdTipoEstadoCuenta(EstadoCuenta.CUENTA_ACTIVA);
 
 			// Pongo las visualizaciones a 0 a los proveedores y a null a los clientes
@@ -246,7 +254,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 			String msg = msgSb.toString();
 
-			mailService.sendHTML("no-reply@reformatec.com", "bienvenido a Reformatec", msg, u.getEmail());
+			mailService.sendHTML(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, MAIL), "bienvenido a Reformatec", msg, u.getEmail());
 
 			// fin de la transaccion a continuacion
 			commitOrRollback = true;
@@ -453,6 +461,48 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 
 	@Override
+	public void updateCode(Long idUsuario, String code)
+			throws DataException, UserNotFoundException, ServiceException {
+		logger.traceEntry();
+
+		Connection c = null;
+		boolean commitOrRollback = false;
+		try {
+			c = ConnectionManager.getConnection();
+
+			// inicio de la transaccion, es como un beggin
+			c.setAutoCommit(false);
+
+
+			usuarioDAO.updateCode(c, idUsuario, code);
+
+			// fin de la transacción a continuacion
+			commitOrRollback = true;
+
+			logger.traceExit();
+
+		} catch (UserNotFoundException unfe) {
+			if (logger.isErrorEnabled()) {
+				logger.error(idUsuario, unfe);
+			}
+			throw unfe;
+
+		} catch (SQLException sqle) {
+			if (logger.isErrorEnabled()) {
+				logger.error(sqle);
+			}
+			throw new DataException(sqle);		
+
+		} finally {
+			JDBCUtils.closeConnection(c, commitOrRollback);
+		}
+	}
+	
+	
+	
+	
+	
+	@Override
 	public void update(UsuarioDTO u, List<Integer> especializaciones) 
 			throws DataException, UserNotFoundException, ServiceException {
 
@@ -466,8 +516,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 			// inicio de la transaccion, es como un beggin
 			c.setAutoCommit(false);
 
-			// recibe la contraseña plana de arriba, y si es distinto de null la setea en la
-			// actual contraseña encryptada(y encriptandola)
+			// recibe la contraseña plana de arriba, y si es distinto de null la setea en la actual contraseña encryptada(y encriptandola)
 			if (u.getPassword() != null) {
 				u.setEncryptedPassword(PasswordEncryptionUtil.encryptPassword(u.getPassword()));
 			}
@@ -567,8 +616,8 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 
 	@Override
-	public void updateStatus(Long idUsuario, Integer idEstadoCuenta)
-			throws DataException, UserNotFoundException, ServiceException {
+	public void updateStatus(Long idUsuario, Integer idEstadoCuenta, String url)
+			throws DataException, UserNotFoundException, MailException, ServiceException {
 
 		logger.traceEntry();
 
@@ -656,6 +705,29 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 			usuarioDAO.updateStatus(c, idUsuario, idEstadoCuenta);
 
+
+			if (idEstadoCuenta==EstadoCuenta.CUENTA_CANCELADA) {
+				
+		
+				Results<UsuarioDTO> results = new Results<UsuarioDTO>();
+				UsuarioCriteria uc = new UsuarioCriteria();
+				uc.setIdUsuario(idUsuario);
+				results = usuarioDAO.findByCriteria(c, uc, Integer.valueOf(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, START_INDEX)), Integer.valueOf(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, PAGE_SIZE)));
+				if(results.getData()!=null) {
+
+					for (UsuarioDTO u : results.getData()) {
+						StringBuilder msgSb = new StringBuilder("<html><body><h1> Hola ").append(u.getNombre())
+								.append(",</h1><h2> Sentimos que te vayas!!</h2>")
+								.append("<p>Siempre puedes reactivar tu cuenta en el siguiente enlace: <a href='"+url+"'>Reactivar Cuenta</a></p></body></html>");
+
+						String msg = msgSb.toString();
+
+						mailService.sendHTML(cfgM.getParameter(ConstantConfigUtil.WEB_REFORMATEC_PROPERTIES, MAIL), "Vuelve con nosotros cuando quieras", msg, u.getEmail());
+					}
+
+
+				}
+			}
 			// fin de la transacción a continuacion
 			commitOrRollback = true;
 
@@ -666,6 +738,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 				logger.error(unfe);
 			}
 			throw unfe;
+
+		} catch (EmailException ee) {
+			if (logger.isErrorEnabled()) {
+				logger.error(idUsuario, ee);
+			}
+			throw new MailException(ee);
 
 		} catch (SQLException sqle) {
 			if (logger.isErrorEnabled()) {
@@ -678,7 +756,53 @@ public class UsuarioServiceImpl implements UsuarioService {
 		}
 	}
 
+	
+	
 
+	public void updatePassword(Long idUsuario, String password)
+			throws DataException, UserNotFoundException, ServiceException{
+
+			logger.traceEntry();
+
+			Connection c = null;
+			boolean commitOrRollback = false;
+			try {
+				c = ConnectionManager.getConnection();
+
+				// inicio de la transaccion, es como un beggin
+				c.setAutoCommit(false);
+
+				
+				//Encripto la pass
+				password = PasswordEncryptionUtil.encryptPassword(password);
+
+				usuarioDAO.updatePassword(c, idUsuario, password);
+
+				// fin de la transacción a continuacion
+				commitOrRollback = true;
+
+				logger.traceExit();
+
+			} catch (UserNotFoundException unfe) {
+				if (logger.isErrorEnabled()) {
+					logger.error(idUsuario, unfe);
+				}
+				throw unfe;
+
+			} catch (SQLException sqle) {
+				if (logger.isErrorEnabled()) {
+					logger.error(idUsuario, sqle);
+				}
+				throw new DataException(sqle);		
+
+			} finally {
+				JDBCUtils.closeConnection(c, commitOrRollback);
+			}
+		}
+	
+	
+	
+	
 	@Override
 	public long deleteById(Long idUsuario)
 			throws DataException, UserNotFoundException, ServiceException {

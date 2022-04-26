@@ -19,11 +19,11 @@ public class DAOUtils {
 		queryString.append(first?" SET ": " , ").append(clause);
 	}
 	
-	
+	/*
 	public static void addLineaPresupuesto(StringBuilder queryString, boolean first, String clause) {
 		queryString.append(first?"(?,?,?)": " ").append(clause);
 	}
-	
+	*/
 	
 	/**
 	 * Obtencion del total de filas de un resultSet, sin repetir consulta.

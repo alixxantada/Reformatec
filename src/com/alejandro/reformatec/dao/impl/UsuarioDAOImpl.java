@@ -61,6 +61,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			+ " INNER JOIN POBLACION pl ON u.ID_POBLACION_USUARIO= pl.ID_POBLACION "
 			+ " INNER JOIN PROVINCIA pr ON pl.ID_PROVINCIA = pr.ID_PROVINCIA ";
 
+	
+	
+	
 	@Override
 	public UsuarioDTO findByEmail(Connection c, UsuarioCriteria uc)
 			throws DataException{
@@ -123,6 +126,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	}
 
 
+	
+	
+	
 	@Override
 	public Results<UsuarioDTO> findByCriteria(Connection c, UsuarioCriteria uc, int startIndex, int pageSize)
 			throws DataException{
@@ -587,22 +593,31 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 		try {
 
-			String sql =" UPDATE USUARIO "
+			StringBuilder queryString = new StringBuilder(" UPDATE USUARIO "
 					+ " SET		TELEFONO1 = ?,"
 					+ "			TELEFONO2 = ?,"
 					+ "			NOMBRE_PERFIL = ?,"
 					+ "			NOMBRE_CALLE = ?,"
 					+ "			COD_POSTAL = ?,"
 					+ "			CIF = ?,"
-					+ "			ENCRYPTED_PASSWORD = ?,"
 					+ "			ID_POBLACION_USUARIO = ?,"
 					+ "			DESCRIPCION = ?,"
 					+ "			DIRECCION_WEB = ?,"
 					+ "			SERVICIO24 = ?, "
-					+ "			PROVEEDOR_VERIFICADO = ? "
-					+ "  WHERE ID_USUARIO = ? ";	
+					+ "			PROVEEDOR_VERIFICADO = ? ");
+					
 
-			preparedStatement = c.prepareStatement(sql);
+			boolean first = false;
+			
+			if (usuario.getEncryptedPassword()!=null) {
+				DAOUtils.addUpdate(queryString, first," ENCRYPTED_PASSWORD = ? ");
+				first = false;
+			}
+			
+			queryString.append(" WHERE ID_USUARIO = ? ");
+			
+			
+			preparedStatement = c.prepareStatement(queryString.toString());
 
 			int i  = 1;
 
@@ -611,15 +626,20 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNombrePerfil());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getNombreCalle());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCodigoPostal());
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCif(),true);
-			JDBCUtils.setParameter(preparedStatement, i++, usuario.getEncryptedPassword());
+			JDBCUtils.setParameter(preparedStatement, i++, usuario.getCif(),true);		
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdPoblacion());
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDescripcion(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDireccionWeb(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getServicio24(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(),true);
+				
+			if (usuario.getEncryptedPassword()!=null) { 
+				JDBCUtils.setParameter(preparedStatement, i++, usuario.getEncryptedPassword());
+			}
+
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdUsuario());
 
+			
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
 			}
@@ -764,7 +784,116 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 
 
+	public int updateCode(Connection c, Long idUsuario, String code)
+			throws DataException, UserNotFoundException{
+		
 
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+idUsuario, code);
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		int updatedRows = 0;
+
+		try {
+
+			String sql =" UPDATE USUARIO "
+					+ "	SET COD_REGISTRO = ? "
+					+ " WHERE ID_USUARIO = ? ";
+
+			preparedStatement = c.prepareStatement(sql);
+
+			int i  = 1;
+
+			JDBCUtils.setParameter(preparedStatement, i++, code);
+			JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			updatedRows = preparedStatement.executeUpdate();
+
+			if (updatedRows!=1) {
+				throw new UserNotFoundException("User: "+idUsuario);
+			}
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+idUsuario, code);
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error("Error id Usuario: "+idUsuario, sqle);
+			}
+			throw new DataException("User: "+idUsuario+": "+sqle.getMessage() ,sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+		return updatedRows;
+	}
+	
+
+	
+	public int updatePassword(Connection c, Long idUsuario, String password)
+			throws DataException, UserNotFoundException{
+		
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+idUsuario);
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		int updatedRows = 0;
+
+		try {
+
+			String sql =" UPDATE USUARIO "
+					+ "	SET ENCRYPTED_PASSWORD = ? "
+					+ " WHERE ID_USUARIO = ? ";
+
+			preparedStatement = c.prepareStatement(sql);
+
+			int i  = 1;
+
+			JDBCUtils.setParameter(preparedStatement, i++, password);
+			JDBCUtils.setParameter(preparedStatement, i++, idUsuario);
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			updatedRows = preparedStatement.executeUpdate();
+
+			if (updatedRows!=1) {
+				throw new UserNotFoundException("User: "+idUsuario);
+			}
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+idUsuario);
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error("Error id Usuario: "+idUsuario, sqle);
+			}
+			throw new DataException("User: "+idUsuario+": "+sqle.getMessage() ,sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+		return updatedRows;
+	}
+	
+	
+	
 	private UsuarioDTO loadNext(Connection c, ResultSet rs) 
 			throws SQLException, DataException { 
 

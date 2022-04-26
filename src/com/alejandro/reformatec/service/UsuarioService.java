@@ -39,7 +39,7 @@ public interface UsuarioService {
 	 * @throws MailException Error al enviar un email.
 	 */
 	public Long signUp(UsuarioDTO u, List<Integer> especializaciones, String url) 
-			throws UserAlreadyExistsException, UserLowInTheSystemException, EmailPendienteValidacionException, ServiceException, DataException, MailException;
+			throws UserAlreadyExistsException, UserLowInTheSystemException, EmailPendienteValidacionException, MailException, ServiceException, DataException;
 
 
 	/**
@@ -161,8 +161,25 @@ public interface UsuarioService {
 	 * @throws UserNotFoundException Error no se encuentra el usuario con por el id indicado.(Múltiples modificaciones a la vez)
 	 * @throws ServiceException No contemplado.
 	 */
-	public void updateStatus(Long idUsuario, Integer idEstadoCuenta) 
-			throws DataException, UserNotFoundException, CodeInvalidException, ServiceException;
+	public void updateStatus(Long idUsuario, Integer idEstadoCuenta, String url) 
+			throws DataException, UserNotFoundException, CodeInvalidException, MailException, ServiceException;
+
+
+
+
+
+	/**
+	 * Método para garantizar la cuenta a la hora de resetear la password por olvidarse de ella.
+	 * 
+	 * @param idUsuario id del usuario a cambiar el code
+	 * @param code codigo para recuperar pass
+	 * @throws DataException Error en conexion BBDD o query DAOimpl.
+	 * @throws UserNotFoundException Error no se encuentra el usuario con por el id indicado.(Múltiples modificaciones a la vez)
+	 * @throws ServiceException No contemplado
+	 */
+	public void updateCode(Long idUsuario, String code)
+			throws DataException, UserNotFoundException, ServiceException;
+
 
 
 
@@ -182,6 +199,22 @@ public interface UsuarioService {
 
 
 
+
+	/**
+	 * Método para updatear contraseña(Olvide contraseña)
+	 * 
+	 * @param idUsuario Usuario que modifica contraseña
+	 * @param password Parametro de la contraseña a modificar
+	 * @throws DataException Error en conexion BBDD o query DAOimpl.	
+	 * @throws UserNotFoundException Error no se encuentra el usuario con por el id indicado.
+	 * @throws ServiceException No contemplado.
+	 */
+	public void updatePassword(Long idUsuario, String password)
+			throws DataException, UserNotFoundException, ServiceException;
+
+
+
+
 	/**
 	 * Método para borrar un usuario.(Sin usar actualmente)
 	 * 
@@ -193,4 +226,5 @@ public interface UsuarioService {
 	 */
 	public long deleteById(Long idUsuario) 
 			throws DataException, UserNotFoundException, ServiceException;
+
 }

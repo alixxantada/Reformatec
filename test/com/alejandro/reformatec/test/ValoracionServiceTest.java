@@ -131,14 +131,44 @@ public class ValoracionServiceTest {
 		}
 	}
 
+	
+	
+	public void testFindByBuenaValoracion() {
+		
+		logger.trace("Begin...");
 
+		///////////////////////////////		
+		int startIndex = 1;
+		int pageSize = 8;
+		///////////////////////////////
 
+		try {
+
+			results = valoracionservice.findByBuenaValoracionRamdom(startIndex, pageSize);
+
+			logger.info("Found: "+(results.getTotal()));
+			for (ValoracionDTO v: results.getData()) {
+				logger.info(v);
+			}
+			
+			
+			logger.trace("End!");
+		} catch(DataException de) {
+			logger.error(de);	
+		}  catch(ServiceException se){
+			logger.error(se);	
+		}
+	}
+
+	
+	
 	public static void main (String args[])
 			throws ServiceException, DataException {
 
 		ValoracionServiceTest test = new ValoracionServiceTest();
 
-		test.testfindByCriteria();
+		//test.testfindByCriteria();
+		test.testFindByBuenaValoracion();
 		//		test.testCreate();
 		//		test.testupdateStatus();
 	}

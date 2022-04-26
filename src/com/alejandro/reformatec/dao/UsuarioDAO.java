@@ -31,20 +31,22 @@ public interface UsuarioDAO {
 	public void visualizaUsuario(Connection c, Long idUsuario)
 			throws DataException;
 
-	//devuelve el id del usuario que se creó
 	public long create(Connection c, UsuarioDTO usuario, List<Integer> especializaciones) 
 			throws DataException;
 
-	// devuelve el numero de filas actualizadas
 	public int update(Connection c, UsuarioDTO usuario, List<Integer> especializaciones)
 			throws DataException, UserNotFoundException;
 
 	public int updateStatus(Connection c, Long idUsuario, Integer idEstadoCuenta) 
 			throws DataException, UserNotFoundException;
 
-	// devuelve el numero de filas borradas
 	public long deleteById(Connection c, Long idUsuario)
 			throws DataException, UserNotFoundException;
 
-
+	public int updateCode(Connection c, Long idUsuario, String code)
+			throws DataException, UserNotFoundException;
+	
+	public int updatePassword(Connection c, Long idUsuario, String password)
+			throws DataException, UserNotFoundException;
+	
 }

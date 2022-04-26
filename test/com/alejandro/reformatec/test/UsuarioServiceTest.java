@@ -47,10 +47,10 @@ public class UsuarioServiceTest {
 		uc.setServicio24(null);
 		uc.setProveedorVerificado(null);
 		uc.setIdEspecializacion(null);
-		uc.setOrderBy(null);
+		uc.setOrderBy("VAL");
 		uc.setEmailActivo(null);
 		uc.setEmailExistente(null);
-		uc.setIdUsuario(1L);
+		uc.setIdUsuario(null);
 		uc.setIdUsuarioFavorito(null);
 		uc.setIdPoblacion(null);
 
@@ -71,6 +71,7 @@ public class UsuarioServiceTest {
 				for (UsuarioDTO u : results.getData()) {
 					logger.trace(" usuario: "+u);
 					logger.trace("Nombre Perfil usuario: "+u.getNombrePerfil());
+					logger.trace("valoracion: "+u.getValoracionMedia());
 				}
 			}else {
 				logger.trace("Sin resultados");
@@ -268,9 +269,9 @@ public class UsuarioServiceTest {
 		//		 String hola = usuario.getCodigoRegistro();
 		//				 System.out.println("QUIIII"+hola);
 
-//		idsEspecializaciones.add(1);
-//		idsEspecializaciones.add(2);
-//		idsEspecializaciones.add(3);
+		//		idsEspecializaciones.add(1);
+		//		idsEspecializaciones.add(2);
+		//		idsEspecializaciones.add(3);
 
 		///////////////////////////////////////////////////////////////
 		usuario.setNombre(nombre);
@@ -394,6 +395,7 @@ public class UsuarioServiceTest {
 		///////////////////////////////
 		Long idUsuario = 1L;
 		int idEstado = 2;
+		String url = "";
 		///////////////////////////////
 		try {
 
@@ -404,7 +406,7 @@ public class UsuarioServiceTest {
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
 			logger.info("Usuario sin actualizar: "+results.getData());
 
-			usuarioservice.updateStatus(idUsuario, idEstado);
+			usuarioservice.updateStatus(idUsuario, idEstado, url);
 
 			uc.setIdUsuario(idUsuario);
 			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
@@ -442,6 +444,68 @@ public class UsuarioServiceTest {
 	}
 
 
+	public void testUpdateCode() {
+		logger.trace("Begin...");
+
+		///////////////////////////////
+		Long idUsuario = 1L;
+		String code = "holaa";
+		///////////////////////////////
+		try {
+
+			int startIndex = 1;
+			int pageSize = 1;
+
+			uc.setIdUsuario(idUsuario);
+			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
+			logger.info("Usuario sin actualizar: "+results.getData());
+
+			usuarioservice.updateCode(idUsuario, code);
+
+			uc.setIdUsuario(idUsuario);
+			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
+			logger.info("Usuario sin actualizar: "+results.getData());
+
+			logger.trace("End!");
+		} catch(DataException de) {
+			logger.error(usuario, de);
+		}  catch(ServiceException se){
+			logger.error(usuario, se);
+		}
+	}
+
+
+	public void testUpdatePassword() {
+		logger.trace("Begin...");
+
+		///////////////////////////////
+		Long idUsuario = 1L;
+		String password = "Aa12345678";
+		///////////////////////////////
+		try {
+
+			int startIndex = 1;
+			int pageSize = 1;
+
+			uc.setIdUsuario(idUsuario);
+			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
+			logger.info("Usuario sin actualizar: "+results.getData());
+
+			usuarioservice.updatePassword(idUsuario, password);
+
+			uc.setIdUsuario(idUsuario);
+			results = usuarioservice.findByCriteria(uc, startIndex, pageSize);
+			logger.info("Usuario sin actualizar: "+results.getData());
+
+			logger.trace("End!");
+		} catch(DataException de) {
+			logger.error(usuario, de);
+		}  catch(ServiceException se){
+			logger.error(usuario, se);
+		}
+	}
+
+
 
 	public static void main (String args[])
 			throws ServiceException, DataException {
@@ -454,10 +518,12 @@ public class UsuarioServiceTest {
 		//test.testAnhadirFavorito();
 		//test.testDeleteFavorito();
 		//test.testUsuarioLogin();
-		test.testSingUp();
+		//test.testSingUp();
 		//test.testValidaEmail();
 		//test.testFindByEmail();
 		//test.testUpdate();		
-		//test.testUpdateStatus();
+		//test.testUpdateStatus();	
+		//test.testUpdateCode();
+		test.testUpdatePassword();
 	}
 }

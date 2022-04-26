@@ -8,8 +8,8 @@ import com.alejandro.reformatec.model.ValoracionDTO;
 
 public interface ValoracionService {
 
-	
-	
+
+
 	/**
 	 * Método para sacar una valoración concreta, savar todas las valoraciones, sacar las valoraciones que tiene un trabajo_realizado,
 	 * sacar las valoraciones que tiene un proveedor, sacar las valoraciones que realiza un usuario a trabajos_realizados o a proveedores.
@@ -33,6 +33,21 @@ public interface ValoracionService {
 			throws DataException, ServiceException;
 
 	
+
+	/**
+	 * Método para traer valoraciones ramdom en el index que sean buenas.
+	 * 
+	 * @param startIndex Donde empieza a contar la paginacion del results.
+	 * @param pageSize De cuantos en cuantos va sacando el results para la paginacion.
+	 * @return Devuelve valoraciones ordenadas ramdom que sean de mas de un 3 de valoracion.
+	 * @throws DataException Error en conexion BBDD o query DAOimpl.
+	 * @throws ServiceException No contemplado.
+	 */
+	public Results<ValoracionDTO> findByBuenaValoracionRamdom(int startIndex, int pageSize)
+			throws DataException, ServiceException;
+	
+	
+	
 	/**
 	 * Método para poder crear una valoración.
 	 * 
@@ -46,6 +61,8 @@ public interface ValoracionService {
 			throws DataException, ServiceException;
 
 	
+	
+
 	/**
 	 * Método para poder actualizar el estado o hacer borrado lógico a una valoración.
 	 * 
@@ -56,4 +73,4 @@ public interface ValoracionService {
 	 */
 	public void updateStatus(Long idValoracion, Integer idEstadoValoracion) 
 			throws DataException, ServiceException;
-}
+}	

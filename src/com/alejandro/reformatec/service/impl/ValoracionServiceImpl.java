@@ -29,8 +29,8 @@ public class ValoracionServiceImpl implements ValoracionService{
 		valoracionDAO = new ValoracionDAOImpl();
 	}
 
-
-
+	
+	
 	@Override
 	public Results<ValoracionDTO> findByCriteria(ValoracionCriteria vc, int startIndex, int pageSize)
 			throws DataException, ServiceException{
@@ -67,7 +67,44 @@ public class ValoracionServiceImpl implements ValoracionService{
 	}
 
 
+	
+	@Override
+	public Results<ValoracionDTO> findByBuenaValoracionRamdom(int startIndex, int pageSize)
+			throws DataException, ServiceException {
+		
+		logger.traceEntry();
 
+		Connection c = null;
+		Results<ValoracionDTO> results = new Results<ValoracionDTO>();
+		boolean commitOrRollback = false;
+
+		try  {
+			c = ConnectionManager.getConnection();								
+
+			// inicio de la transaccion, es como un beggin
+			c.setAutoCommit(false);
+
+			results = valoracionDAO.findByBuenaValoracionRamdom(c, startIndex, pageSize);
+
+			// fin de la transacción
+			commitOrRollback = true;
+
+			logger.traceExit();
+
+		} catch (SQLException sqle) {
+			if (logger.isErrorEnabled()) {
+				logger.error(results,sqle);
+			}
+			throw new DataException(sqle);		
+
+		} finally {
+			JDBCUtils.closeConnection(c, commitOrRollback);
+		}
+		return results;
+	}
+	
+	
+	
 	@Override
 	public long create(ValoracionDTO valoracion) 
 			throws DataException, ServiceException {

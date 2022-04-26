@@ -14,6 +14,9 @@ public interface ValoracionDAO {
 	public Results<ValoracionDTO> findByCriteria(Connection c, ValoracionCriteria vc, int startIndex, int pageSize)
 			throws DataException;
 
+	public Results<ValoracionDTO> findByBuenaValoracionRamdom(Connection c, int startIndex, int pageSize)
+			throws DataException;
+
 	public long create(Connection c, ValoracionDTO valoracion)
 			throws DataException;
 
