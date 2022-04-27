@@ -42,7 +42,7 @@ public class UsuarioServiceTest {
 		logger.trace("Begin...");
 
 		////////////////////////////////////////////////////////
-		uc.setDescripcion(null);
+		uc.setDescripcion("cons");
 		uc.setIdProvincia(null);
 		uc.setServicio24(null);
 		uc.setProveedorVerificado(null);
@@ -56,7 +56,7 @@ public class UsuarioServiceTest {
 
 		int startIndex = 1;
 		int pageSize = 5;
-		///////////////////////////////////////////////////
+		////////////////////////////////////////////////////////
 		// OrderBy opcion VAL -  ORDER BY AVG(v.NOTA_VALORACION) DESC)
 		// OrderBy opcion NV -  ORDER BY u.NUM_VISUALIZACION DESC
 		/////////////////////////////////////////////////////////
@@ -512,7 +512,7 @@ public class UsuarioServiceTest {
 
 		UsuarioServiceTest test = new UsuarioServiceTest();
 
-		//test.testFindByCriteria();
+		test.testFindByCriteria();
 		//test.testVisualizaUsuario();
 		//test.testCompruebaFavorito();
 		//test.testAnhadirFavorito();
@@ -524,6 +524,6 @@ public class UsuarioServiceTest {
 		//test.testUpdate();		
 		//test.testUpdateStatus();	
 		//test.testUpdateCode();
-		test.testUpdatePassword();
+		//test.testUpdatePassword();
 	}
 }

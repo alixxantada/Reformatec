@@ -2,6 +2,7 @@ package com.alejandro.reformatec.dao;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Set;
 
 import com.alejandro.reformatec.exception.DataException;
 import com.alejandro.reformatec.exception.UserNotFoundException;
@@ -26,6 +27,9 @@ public interface UsuarioDAO {
 			throws DataException;
 
 	public Boolean compruebaFavorito(Connection c, Long idCliente, Long idProveedor) 
+			throws DataException;
+	
+	public Set<Long> findFavorito(Connection c, Long idUsuario) 
 			throws DataException;
 
 	public void visualizaUsuario(Connection c, Long idUsuario)

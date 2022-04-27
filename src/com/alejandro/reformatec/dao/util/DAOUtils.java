@@ -10,20 +10,31 @@ public class DAOUtils {
 
 	}
 
-	public static void addClause(StringBuilder queryString, boolean first, String clause) {
+
+	/**
+	 * Metodo para componer las query de los find criteria
+	 * 
+	 * @param queryString query
+	 * @param first	Indica si pone ,WHERE, AND u OR
+	 * @param clause Se indica con que completa la query
+	 */
+	public static void addClause(StringBuilder queryString, Boolean first, String clause) {
+		
+		if (first!=null) {
 		queryString.append(first?" WHERE ": " AND ").append(clause);
+		} else {
+			queryString.append(" OR ").append(clause);
+		}
 	}
+	
 
 	
 	public static void addUpdate(StringBuilder queryString, boolean first, String clause) {
 		queryString.append(first?" SET ": " , ").append(clause);
 	}
 	
-	/*
-	public static void addLineaPresupuesto(StringBuilder queryString, boolean first, String clause) {
-		queryString.append(first?"(?,?,?)": " ").append(clause);
-	}
-	*/
+	
+	
 	
 	/**
 	 * Obtencion del total de filas de un resultSet, sin repetir consulta.

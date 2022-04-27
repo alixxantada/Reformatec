@@ -2,7 +2,9 @@ package com.alejandro.reformatec.service.impl;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
@@ -383,6 +385,44 @@ public class UsuarioServiceImpl implements UsuarioService {
 	}
 
 
+	
+	
+	
+	public Set<Long> findFavorito(Long idUsuario) 
+			throws DataException, ServiceException{
+		logger.traceEntry();
+	
+		Connection c = null;
+		Set<Long> usuariosIds = new HashSet<Long>();
+		boolean commitOrRollback = false;
+		try {
+			c = ConnectionManager.getConnection();
+
+			// inicio de la transaccion, es como un beggin
+			c.setAutoCommit(false);
+
+			usuariosIds = usuarioDAO.findFavorito(c, idUsuario);
+
+			// fin de la transacción a continuacion
+			commitOrRollback = true;
+
+			logger.traceExit();
+
+		} catch (SQLException sqle) {
+			if (logger.isErrorEnabled()) {
+				logger.error(usuariosIds,sqle);
+			}
+			throw new DataException(sqle);	
+
+		} finally {
+			JDBCUtils.closeConnection(c, commitOrRollback);
+		}
+		return usuariosIds;
+	}
+	
+	
+	
+	
 	public void deleteFavorito(Long idCliente, Long idProveedor) 
 			throws DataException, ServiceException {
 

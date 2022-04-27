@@ -7,8 +7,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,9 +63,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			+ " INNER JOIN POBLACION pl ON u.ID_POBLACION_USUARIO= pl.ID_POBLACION "
 			+ " INNER JOIN PROVINCIA pr ON pl.ID_PROVINCIA = pr.ID_PROVINCIA ";
 
-	
-	
-	
+
+
+
 	@Override
 	public UsuarioDTO findByEmail(Connection c, UsuarioCriteria uc)
 			throws DataException{
@@ -126,9 +128,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 	}
 
 
+
 	
-	
-	
+
 	@Override
 	public Results<UsuarioDTO> findByCriteria(Connection c, UsuarioCriteria uc, int startIndex, int pageSize)
 			throws DataException{
@@ -154,7 +156,223 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			}
 
 			if(uc.getIdUsuarioFavorito()!=null) {
-				DAOUtils.addClause(queryString, first," uf.ID_USUARIO_SIGUE = ? AND u.ID_TIPO_ESTADO_CUENTA = 2 GROUP BY uf.ID_USUARIO_SEGUIDO ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+				DAOUtils.addClause(queryString, first," uf.ID_USUARIO_SIGUE = ? AND u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 GROUP BY uf.ID_USUARIO_SEGUIDO ORDER BY AVG(v.NOTA_VALORACION) DESC ");
+				first = false;
+			}
+
+			if(uc.getDescripcion()!=null) {
+				DAOUtils.addClause(queryString, first," (UPPER(u.NOMBRE_PERFIL) LIKE UPPER(?)) ");
+				first = false;
+			}
+
+			if(uc.getIdProvincia()!=null){
+				DAOUtils.addClause(queryString, first," pr.ID_PROVINCIA = ? ");
+				first = false;
+			}
+
+			if(uc.getIdPoblacion()!=null) {
+				DAOUtils.addClause(queryString, first," pl.ID_POBLACION = ? ");
+				first = false;
+			}
+
+			if(uc.getServicio24()!=null) {
+				DAOUtils.addClause(queryString, first," u.SERVICIO24 = ? ");
+				first = false;
+			}
+
+			if(uc.getProveedorVerificado()!=null) {
+				DAOUtils.addClause(queryString, first," u.PROVEEDOR_VERIFICADO = ? ");
+				first = false;
+			}
+
+			if(uc.getIdEspecializacion()!=null) {
+				DAOUtils.addClause(queryString, first," ue.ID_ESPECIALIZACION = ? ");
+				first = false;
+			}
+
+
+			if(uc.getDescripcion()!=null) {
+				
+				DAOUtils.addClause(queryString, first, " u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 ");
+				
+				DAOUtils.addClause(queryString, null," (UPPER(u.DESCRIPCION) LIKE UPPER(?)) ");
+				first = false;
+				
+				if(uc.getIdProvincia()!=null){
+					DAOUtils.addClause(queryString, first," pr.ID_PROVINCIA = ? ");
+					first = false;
+				}
+
+				if(uc.getIdPoblacion()!=null) {
+					DAOUtils.addClause(queryString, first," pl.ID_POBLACION = ? ");
+					first = false;
+				}
+
+				if(uc.getServicio24()!=null) {
+					DAOUtils.addClause(queryString, first," u.SERVICIO24 = ? ");
+					first = false;
+				}
+
+				if(uc.getProveedorVerificado()!=null) {
+					DAOUtils.addClause(queryString, first," u.PROVEEDOR_VERIFICADO = ? ");
+					first = false;
+				}
+
+				if(uc.getIdEspecializacion()!=null) {
+					DAOUtils.addClause(queryString, first," ue.ID_ESPECIALIZACION = ? ");
+					first = false;
+				}
+			}
+			
+			
+			if (uc.getIdUsuario()==null && uc.getIdUsuarioFavorito()==null) {
+
+				DAOUtils.addClause(queryString, first, " u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 GROUP BY u.ID_USUARIO ");
+
+				if(uc.getOrderBy()!=null) {
+					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(uc.getOrderBy()));
+				} else {
+					queryString.append(" ORDER BY u.NUM_VISUALIZACION DESC ");
+				}
+			}
+
+
+			preparedStatement = c.prepareStatement(queryString.toString(),ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			int i = 1;
+
+			if(uc.getIdUsuario()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdUsuario());
+			}
+
+			if(uc.getIdUsuarioFavorito()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdUsuarioFavorito());
+			}
+
+			if(uc.getDescripcion()!=null) {
+				StringBuilder a = new StringBuilder("%");
+				a.append(uc.getDescripcion()).append("%");
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // descripcion
+			}			
+
+			if(uc.getIdProvincia()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdProvincia());
+			}
+
+			if(uc.getIdPoblacion()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdPoblacion());
+			}
+
+			if(uc.getServicio24()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getServicio24());
+			}
+
+			if(uc.getProveedorVerificado()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getProveedorVerificado());
+			}	
+
+			if (uc.getIdEspecializacion()!=null ) {
+				JDBCUtils.setParameter(preparedStatement, i++, uc.getIdEspecializacion());		
+			}
+			
+			
+			if(uc.getDescripcion()!=null) {
+				StringBuilder a = new StringBuilder("%");
+				a.append(uc.getDescripcion()).append("%");
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString());
+				
+				if(uc.getIdProvincia()!=null) {
+					JDBCUtils.setParameter(preparedStatement, i++, uc.getIdProvincia());
+				}
+
+				if(uc.getIdPoblacion()!=null) {
+					JDBCUtils.setParameter(preparedStatement, i++, uc.getIdPoblacion());
+				}
+
+				if(uc.getServicio24()!=null) {
+					JDBCUtils.setParameter(preparedStatement, i++, uc.getServicio24());
+				}
+
+				if(uc.getProveedorVerificado()!=null) {
+					JDBCUtils.setParameter(preparedStatement, i++, uc.getProveedorVerificado());
+				}	
+
+				if (uc.getIdEspecializacion()!=null ) {
+					JDBCUtils.setParameter(preparedStatement, i++, uc.getIdEspecializacion());		
+				}
+			}	
+
+			if (logger.isInfoEnabled()) {
+				logger.info(preparedStatement);
+			}
+
+			rs = preparedStatement.executeQuery();
+
+			List<UsuarioDTO> usuarios = new ArrayList<UsuarioDTO>();
+			UsuarioDTO usuario = null;
+			int resultsLoaded = 0;
+			// dirigimos el puntero a donde empezamos a mostrar resultados en nuestro resulset(si hay almenos 1 resultado)
+			if ((startIndex >=1) && rs.absolute(startIndex)) {
+				// empezamos recorriendolo ya 1 vez para sacar el primer resultado! luego si hay mas lo repetimos! de lo contrario se salta el primero
+				do { 
+					usuario = loadNext(c, rs);
+					if (usuario.getIdUsuario()!=null) {
+						usuarios.add(usuario);
+						resultsLoaded++;
+					}
+				} while (resultsLoaded<pageSize && rs.next());				
+			}
+
+			results.setData(usuarios);
+			results.setTotal(DAOUtils.getTotalRows(rs));
+
+			if (logger.isTraceEnabled()) {
+				logger.trace("End "+results);
+			}
+
+		} catch (SQLException sqle) {			
+			if (logger.isErrorEnabled()) {
+				logger.error("Error SQL: "+results, sqle);
+			}
+			throw new DataException("Error lista: "+results, sqle);
+
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+		return results;
+	}
+
+
+	
+
+/*
+	@Override
+	public Results<UsuarioDTO> findByCriteria(Connection c, UsuarioCriteria uc, int startIndex, int pageSize)
+			throws DataException{
+
+		if (logger.isTraceEnabled()) {
+			logger.trace("Begin "+uc);
+		}
+
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+
+		Results<UsuarioDTO> results = new Results<UsuarioDTO>();
+
+		try {
+
+			StringBuilder queryString = new StringBuilder(QUERY_BASE_FIND);
+
+			boolean first = true;
+
+			if(uc.getIdUsuario()!=null) {
+				DAOUtils.addClause(queryString, first," u.ID_USUARIO = ? ");
+				first = false;
+			}
+
+			if(uc.getIdUsuarioFavorito()!=null) {
+				DAOUtils.addClause(queryString, first," uf.ID_USUARIO_SIGUE = ? AND u.ID_TIPO_ESTADO_CUENTA = 2 AND u.ID_TIPO_USUARIO = 2 GROUP BY uf.ID_USUARIO_SEGUIDO ORDER BY AVG(v.NOTA_VALORACION) DESC ");
 				first = false;
 			}
 
@@ -196,7 +414,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 				if(uc.getOrderBy()!=null) {
 					queryString.append(" ORDER BY "+ SORTING_CRITERIA_MAP.get(uc.getOrderBy()));
 				} else {
-					queryString.append(" ORDER BY AVG(u.NUM_VISUALIZACION) DESC ");
+					queryString.append(" ORDER BY u.NUM_VISUALIZACION DESC ");
 				}
 			}
 
@@ -282,9 +500,13 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		}
 		return results;
 	}
+*/
 
 
-
+	
+	
+	
+	
 	@Override
 	public void anhadirFavorito(Connection c , Long idCliente, Long idProveedor)
 			throws DataException{
@@ -330,6 +552,53 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.close(preparedStatement);
 		}
 	}
+
+
+
+
+	@Override
+	public Set<Long> findFavorito(Connection c, Long idUsuario) 
+			throws DataException {
+		PreparedStatement preparedStatement = null;
+		ResultSet rs = null;
+		Set<Long> usuariosIds = null;
+		try {
+			// Compose SQL
+			String sql = " SELECT u.ID_USUARIO "
+					+ " FROM USUARIO u INNER JOIN USUARIO_FAVORITO uf "
+					+ " on u.ID_USUARIO = uf.ID_USUARIO_SEGUIDO "
+					+ " WHERE uf.ID_USUARIO_SIGUE = ? ";
+
+			// Create prepared statement
+			preparedStatement = c.prepareStatement(sql,ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			JDBCUtils.setParameter(preparedStatement, 1, idUsuario);
+
+			rs = preparedStatement.executeQuery();
+
+
+			if (logger.isInfoEnabled()) {
+				logger.info("findSeguidosIds query = "+sql.toString());
+			}
+
+
+			usuariosIds = new HashSet<Long>();
+			while (rs.next()) {
+				usuariosIds.add(rs.getLong(1));
+			}
+
+
+		} catch (SQLException e) {
+			logger.error("findFavorito: "+idUsuario+": "+e.getMessage() ,e);
+			throw new DataException("findSeguidosIds: "+idUsuario+": "+e.getMessage() ,e);
+		} finally {
+			JDBCUtils.close(rs);
+			JDBCUtils.close(preparedStatement);
+		}
+
+		return  usuariosIds;
+	}
+
 
 
 
@@ -605,18 +874,18 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 					+ "			DIRECCION_WEB = ?,"
 					+ "			SERVICIO24 = ?, "
 					+ "			PROVEEDOR_VERIFICADO = ? ");
-					
+
 
 			boolean first = false;
-			
+
 			if (usuario.getEncryptedPassword()!=null) {
 				DAOUtils.addUpdate(queryString, first," ENCRYPTED_PASSWORD = ? ");
 				first = false;
 			}
-			
+
 			queryString.append(" WHERE ID_USUARIO = ? ");
-			
-			
+
+
 			preparedStatement = c.prepareStatement(queryString.toString());
 
 			int i  = 1;
@@ -632,14 +901,14 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getDireccionWeb(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getServicio24(),true);
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getProveedorVerificado(),true);
-				
+
 			if (usuario.getEncryptedPassword()!=null) { 
 				JDBCUtils.setParameter(preparedStatement, i++, usuario.getEncryptedPassword());
 			}
 
 			JDBCUtils.setParameter(preparedStatement, i++, usuario.getIdUsuario());
 
-			
+
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
 			}
@@ -652,8 +921,8 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 					especializacionDAO.crearEspecializacionUsuario(c, usuario.getIdUsuario(), idEspecializacion);	
 				}									
 			}
-			
-			
+
+
 			if (updatedRows!=1) {
 				throw new UserNotFoundException("User: "+usuario.getIdUsuario());
 			}
@@ -786,7 +1055,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 
 	public int updateCode(Connection c, Long idUsuario, String code)
 			throws DataException, UserNotFoundException{
-		
+
 
 		if (logger.isTraceEnabled()) {
 			logger.trace("Begin "+idUsuario, code);
@@ -836,12 +1105,12 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		}
 		return updatedRows;
 	}
-	
 
-	
+
+
 	public int updatePassword(Connection c, Long idUsuario, String password)
 			throws DataException, UserNotFoundException{
-		
+
 
 		if (logger.isTraceEnabled()) {
 			logger.trace("Begin "+idUsuario);
@@ -891,9 +1160,9 @@ public class UsuarioDAOImpl implements UsuarioDAO {
 		}
 		return updatedRows;
 	}
-	
-	
-	
+
+
+
 	private UsuarioDTO loadNext(Connection c, ResultSet rs) 
 			throws SQLException, DataException { 
 

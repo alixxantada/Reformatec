@@ -32,7 +32,7 @@ public class TrabajoRealizadoServiceTest {
 		logger.trace("Begin...");
 		
 		////////////////////////////////////////////////////////
-		trc.setDescripcion(null);
+		trc.setDescripcion("tej");
 		trc.setIdProvincia(null);
 		trc.setIdProveedor(null);
 		trc.setIdTrabajoRealizado(null);
@@ -203,9 +203,9 @@ public class TrabajoRealizadoServiceTest {
 
 		TrabajoRealizadoServiceTest test = new TrabajoRealizadoServiceTest();
 
-		//test.testFindByCriteria();
+		test.testFindByCriteria();
 		//test.testCreate();
-		test.testUpdate();
+		//test.testUpdate();
 		//test.testupdateStatus();
 	}
 

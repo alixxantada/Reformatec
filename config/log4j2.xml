@@ -47,6 +47,9 @@
 				ref="errorLog" /> -->
 		</Root>
 
+		<!--  Logs de Pool de conexiones OFF -->
+		<Logger name="com.mchange.v2.*" level="off"/>
+		
 	</Loggers>
 
 </Configuration>

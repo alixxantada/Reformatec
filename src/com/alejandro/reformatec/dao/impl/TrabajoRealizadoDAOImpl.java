@@ -80,7 +80,7 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			boolean first = true;
 
 			if(trc.getDescripcion()!=null) {
-				DAOUtils.addClause(queryString, first," (UPPER(tr.DESCRIPCION) LIKE UPPER(?)) OR (UPPER(tr.TITULO) LIKE UPPER(?)) ");
+				DAOUtils.addClause(queryString, first," (UPPER(tr.DESCRIPCION) LIKE UPPER(?)) ");
 				first = false;
 			}
 
@@ -103,11 +103,29 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 				DAOUtils.addClause(queryString, first," tr.ID_TRABAJO_REALIZADO = ? ");
 				first = false;
 			}
+			
+			if(trc.getDescripcion()!=null) {
+				
+				queryString.append(" AND tetr.ID_TIPO_ESTADO_TRABAJO_REALIZADO = 1 AND u.ID_TIPO_USUARIO = 2 AND (u.ID_TIPO_ESTADO_CUENTA = 2 || 1 ) ");
 
+				DAOUtils.addClause(queryString, null," (UPPER(tr.TITULO) LIKE UPPER(?)) ");
+				first = false;
+				
+				if(trc.getIdProvincia()!=null) {
+					DAOUtils.addClause(queryString, first," pl.ID_PROVINCIA = ? ");
+					first = false;
+				}
 
-			if (trc.getIdTrabajoRealizado()!=null) {
+				if(trc.getIdEspecializacion()!=null) {
+					DAOUtils.addClause(queryString, first," tre.ID_ESPECIALIZACION = ? ");
+					first = false;
+				}
 
-			} else {
+			}
+			
+			
+
+			if (trc.getIdTrabajoRealizado()==null) {
 
 				queryString.append(" AND tetr.ID_TIPO_ESTADO_TRABAJO_REALIZADO = 1 AND u.ID_TIPO_USUARIO = 2 AND (u.ID_TIPO_ESTADO_CUENTA = 2 || 1 )  GROUP BY tr.ID_TRABAJO_REALIZADO ");
 
@@ -127,8 +145,7 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 			if(trc.getDescripcion()!=null) {
 				StringBuilder a = new StringBuilder("%");
 				a.append(trc.getDescripcion()).append("%");
-				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // PRIMER VALOR (descripcion trabajo)
-				JDBCUtils.setParameter(preparedStatement, i++, a.toString()); // SEGUNDO VALOR (nombre perfil)
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString());
 			}
 
 			if(trc.getIdProvincia()!=null) {
@@ -145,6 +162,20 @@ public class TrabajoRealizadoDAOImpl implements TrabajoRealizadoDAO{
 
 			if (trc.getIdTrabajoRealizado()!=null ) {
 				JDBCUtils.setParameter(preparedStatement, i++, trc.getIdTrabajoRealizado());		
+			}
+			
+			if(trc.getDescripcion()!=null) {
+				StringBuilder a = new StringBuilder("%");
+				a.append(trc.getDescripcion()).append("%");
+				JDBCUtils.setParameter(preparedStatement, i++, a.toString());
+				
+				if(trc.getIdProvincia()!=null) {
+					JDBCUtils.setParameter(preparedStatement, i++, trc.getIdProvincia());
+				}
+
+				if (trc.getIdEspecializacion()!=null ) {
+					JDBCUtils.setParameter(preparedStatement, i++, trc.getIdEspecializacion());		
+				}
 			}
 
 			if (logger.isInfoEnabled()) {

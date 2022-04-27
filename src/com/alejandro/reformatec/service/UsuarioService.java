@@ -1,6 +1,7 @@
 package com.alejandro.reformatec.service;
 
 import java.util.List;
+import java.util.Set;
 
 import com.alejandro.reformatec.exception.CodeInvalidException;
 import com.alejandro.reformatec.exception.DataException;
@@ -211,6 +212,22 @@ public interface UsuarioService {
 	 */
 	public void updatePassword(Long idUsuario, String password)
 			throws DataException, UserNotFoundException, ServiceException;
+
+
+
+
+	/**
+	 * 
+	 * Metodo para saber los favoritos de un usuario.
+	 * 
+	 * @param idUsuario id del usuario del que queremos saber los favoritos
+	 * @return Devuelve una "lista" de ids (mas rapido que una lista)
+	 * @throws DataException Error en conexion BBDD o query DAOimpl.
+	 * @throws ServiceException No contemplado.
+	 */
+	public Set<Long> findFavorito(Long idUsuario) 
+			throws DataException, ServiceException;
+
 
 
 
