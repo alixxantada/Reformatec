@@ -11,6 +11,8 @@ public class EspecializacionCriteria extends AbstractValueObject {
 	private Long idUsuario;
 	
 	private Long idTrabajoRealizado;
+	
+	private Long idUsuarioSin;
 
 	
 	public EspecializacionCriteria() {
@@ -47,5 +49,13 @@ public class EspecializacionCriteria extends AbstractValueObject {
 
 	public void setIdTrabajoRealizado(Long idTrabajoRealizado) {
 		this.idTrabajoRealizado = idTrabajoRealizado;
+	}
+
+	public Long getIdUsuarioSin() {
+		return idUsuarioSin;
+	}
+
+	public void setIdUsuarioSin(Long idUsuarioSin) {
+		this.idUsuarioSin = idUsuarioSin;
 	}	
 }

@@ -34,6 +34,7 @@ public class EspecializacionServiceTest {
 		ec.setIdProyecto(null);
 		ec.setIdTrabajoRealizado(null);
 		ec.setIdUsuario(null);
+		ec.setIdUsuarioSin(2L);
 
 		/////////////////////////////////////
 		try {

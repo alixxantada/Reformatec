@@ -32,7 +32,7 @@ public class TrabajoRealizadoServiceTest {
 		logger.trace("Begin...");
 		
 		////////////////////////////////////////////////////////
-		trc.setDescripcion("tej");
+		trc.setDescripcion("reto");
 		trc.setIdProvincia(null);
 		trc.setIdProveedor(null);
 		trc.setIdTrabajoRealizado(null);
@@ -53,6 +53,7 @@ public class TrabajoRealizadoServiceTest {
 			logger.info("Found: "+(results.getTotal()));
 			for (TrabajoRealizadoDTO tr: results.getData()) {
 				logger.info(tr);
+				logger.info(tr.getNotaValoracion());
 			}
 
 			logger.trace("End!");

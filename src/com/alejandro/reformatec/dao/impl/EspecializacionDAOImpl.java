@@ -67,6 +67,14 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 			if(ec.getIdUsuario()!=null) {
 				DAOUtils.addClause(queryString, first," ue.ID_USUARIO = ? ");
 				first = false;
+			}
+			
+			if(ec.getIdUsuarioSin()!=null) {
+				DAOUtils.addClause(queryString, first," e.ID_ESPECIALIZACION NOT IN(SELECT e.ID_ESPECIALIZACION "
+										+ "	FROM ESPECIALIZACION e "
+										+ "	LEFT OUTER JOIN USUARIO_ESPECIALIZACION ue ON e.ID_ESPECIALIZACION = ue.ID_ESPECIALIZACION "
+										+ "	WHERE ue.ID_USUARIO = ? ) ");
+				first = false;
 			}	
 
 			queryString.append(" GROUP BY e.ID_ESPECIALIZACION ORDER BY e.ID_ESPECIALIZACION ASC ");
@@ -91,6 +99,9 @@ public class EspecializacionDAOImpl implements EspecializacionDAO{
 				JDBCUtils.setParameter(preparedStatement, i++, ec.getIdUsuario());
 			}	
 
+			if(ec.getIdUsuarioSin()!=null) {
+				JDBCUtils.setParameter(preparedStatement, i++, ec.getIdUsuarioSin());
+			}	
 			if (logger.isInfoEnabled()) {
 				logger.info(preparedStatement);
 			}
