@@ -196,7 +196,7 @@ public interface UsuarioService {
 	 * @throws ServiceException No contemplado.
 	 */
 	public UsuarioDTO validaEmail(String email, String codRegistro) 
-			throws DataException, UserNotFoundException, CodeInvalidException, ServiceException;
+			throws DataException, UserNotFoundException, UserLowInTheSystemException, CodeInvalidException, ServiceException;
 
 
 
