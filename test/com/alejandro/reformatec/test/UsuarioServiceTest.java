@@ -123,8 +123,8 @@ public class UsuarioServiceTest {
 		logger.trace("Begin...");
 
 		////////////////////////////////////////////
-		String email = "noeglgl@hotmail.com";
-		String password = "Aa12345678";
+		String email = "alixxantada@gmail.com";
+		String password = "Aa12345677";
 		///////////////////////////////////////////
 		try {
 
@@ -132,6 +132,8 @@ public class UsuarioServiceTest {
 
 			if (results != null) {
 				logger.info("Bienvenido a Reformatec ");
+				logger.info("AQUII "+usuario.getNombrePoblacion());
+				
 			} else {
 				logger.info("Usuario o contraseña incorrecta ");
 			}
@@ -512,13 +514,13 @@ public class UsuarioServiceTest {
 
 		UsuarioServiceTest test = new UsuarioServiceTest();
 
-		test.testFindByCriteria();
+//		test.testFindByCriteria();
 		//test.testVisualizaUsuario();
 		//test.testCompruebaFavorito();
 		//test.testAnhadirFavorito();
 		//test.testDeleteFavorito();
-		//test.testUsuarioLogin();
-		//test.testSingUp();
+		test.testUsuarioLogin();
+//	test.testSingUp();
 		//test.testValidaEmail();
 		//test.testFindByEmail();
 		//test.testUpdate();		
