@@ -20,7 +20,7 @@ public class ContadorServiceTest {
 
 
 	public void testCuentaClientes() {
-		logger.trace("Begin...");	
+		logger.trace("Begin....");	
 
 		try {
 
